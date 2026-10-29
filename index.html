@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#efb1bf">
+  <meta name="description" content="Chez Theo — 一个可以慢慢探索的手绘房间。">
+  <title>Chez Theo</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="site-shell" aria-label="Chez Theo 的手绘房间">
+    <div class="room" id="room">
+      <div class="artboard" id="artboard">
+        <img class="layer background" src="assets/background.png" alt="手绘房间背景">
+        <img class="layer" src="assets/racket.png" alt="" aria-hidden="true">
+        <img class="layer tennis-layer" id="tennisLayer" src="assets/tennis.png" alt="" aria-hidden="true">
+        <img class="layer chandelier-layer" src="assets/chandelier.png" alt="" aria-hidden="true">
+        <img class="layer" src="assets/floor-lamp.png" alt="" aria-hidden="true">
+        <img class="layer" src="assets/furniture.png" alt="" aria-hidden="true">
+        <img class="layer" src="assets/flowers.png" alt="" aria-hidden="true">
+        <img class="layer" src="assets/glass.png" alt="" aria-hidden="true">
+        <img class="layer" src="assets/photo-book.png" alt="" aria-hidden="true">
+        <img class="layer" src="assets/diary.png" alt="" aria-hidden="true">
+        <img class="layer" src="assets/candlestick.png" alt="" aria-hidden="true">
+        <img class="layer" src="assets/painting.png" alt="" aria-hidden="true">
+
+        <img class="layer night-wash" id="nightWash" src="assets/night.png" alt="" aria-hidden="true">
+
+        <div class="light floor-light" id="floorLight" aria-hidden="true"></div>
+        <div class="light chandelier-light" id="chandelierLight" aria-hidden="true"></div>
+
+        <div class="candle-zone" id="candleZone" aria-label="把鼠标移到烛光旁边，试着吹动火焰">
+          <i class="flame flame-one" aria-hidden="true"></i>
+          <i class="flame flame-two" aria-hidden="true"></i>
+          <i class="flame flame-three" aria-hidden="true"></i>
+        </div>
+
+        <button class="hotspot tennis-hotspot" id="tennisButton" type="button" aria-label="让网球弹出房间">
+          <span>play</span>
+        </button>
+        <button class="hotspot project photo-hotspot" type="button" data-project="摄影集" aria-label="打开摄影集">
+          <span>摄影集</span>
+        </button>
+        <button class="hotspot project diary-hotspot" type="button" data-project="少女心事" aria-label="打开少女心事">
+          <span>少女心事</span>
+        </button>
+        <button class="hotspot project painting-hotspot" type="button" data-project="画" aria-label="打开画作">
+          <span>画</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="brand" aria-hidden="true">chez theo</div>
+    <div class="time-state" id="timeState" aria-live="polite">白天</div>
+    <p class="hint" id="hint">房间里的物件可以点击</p>
+  </main>
+
+  <dialog class="project-dialog" id="projectDialog">
+    <button class="dialog-close" id="dialogClose" type="button" aria-label="关闭">×</button>
+    <p class="eyebrow">chez theo · collection</p>
+    <h1 id="dialogTitle"></h1>
+    <p>作品正在整理中，很快会住进这个房间。</p>
+  </dialog>
+
+  <script src="script.js"></script>
+</body>
+</html>
