@@ -204,9 +204,26 @@
       const context = this.viewportBackground.getContext('2d');
       context.fillStyle = '#ffffff';
       context.fillRect(0, 0, width, height);
-      const background = this.images.background;
-      const bw = background.naturalWidth || background.width;
-      const bh = background.naturalHeight || background.height;
+      const original = this.images.background;
+      const bw = original.naturalWidth || original.width;
+      const bh = original.naturalHeight || original.height;
+      if (!this.cleanBackground) {
+        // Remove only the exported frame stroke; keep all interior artwork at
+        // its exact original coordinates, including its flat pink outlines.
+        this.cleanBackground = this.newCanvas(bw, bh);
+        const clean = this.cleanBackground.getContext('2d');
+        clean.imageSmoothingEnabled = false;
+        clean.drawImage(original, 0, 0);
+        clean.clearRect(0, 0, bw, 1);
+        clean.clearRect(0, bh - 1, bw, 1);
+        clean.clearRect(0, 0, 1, bh);
+        clean.clearRect(bw - 1, 0, 1, bh);
+        clean.drawImage(original, 1, 1, bw - 2, 1, 1, 0, bw - 2, 1);
+        clean.drawImage(original, 1, bh - 2, bw - 2, 1, 1, bh - 1, bw - 2, 1);
+        clean.drawImage(original, 1, 1, 1, bh - 2, 0, 1, 1, bh - 2);
+        clean.drawImage(original, bw - 2, 1, 1, bh - 2, bw - 1, 1, 1, bh - 2);
+      }
+      const background = this.cleanBackground;
       const left = Math.round(this.viewport.x), top = Math.round(this.viewport.y);
       const right = Math.round(this.viewport.x + W * this.viewport.scale);
       const bottom = Math.round(this.viewport.y + H * this.viewport.scale);
