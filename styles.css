@@ -1,8 +1,9 @@
 :root {
-  --paper: #f4c2cb;
+  --paper: #ffffff;
   --ink: #5a2f3b;
   --cream: #fff9ed;
   --night-opacity: 0;
+  --night-strength: 0;
 }
 
 * { box-sizing: border-box; }
@@ -26,9 +27,17 @@ button { font: inherit; }
   display: grid;
   place-items: center;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 16% 10%, rgba(255,255,255,.3), transparent 28%),
-    linear-gradient(135deg, #f7ccd3, #eeb0bf);
+  background: var(--paper);
+}
+
+/* Extend the exact edge colour of the night artwork across the viewport. */
+.site-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #568ad4;
+  opacity: var(--night-opacity);
+  pointer-events: none;
 }
 
 .room {
@@ -37,6 +46,7 @@ button { font: inherit; }
   height: min(100vh, calc(100vw * 9 / 16));
   overflow: hidden;
   isolation: isolate;
+  background: var(--paper);
 }
 
 .artboard {
@@ -45,6 +55,7 @@ button { font: inherit; }
   overflow: hidden;
   cursor: default;
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .layer {
@@ -60,10 +71,42 @@ button { font: inherit; }
 
 .background { opacity: .6; }
 
-.chandelier-layer {
-  width: 114.45%;
-  height: 114.45%;
+.object-visual {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: transform 220ms cubic-bezier(.2,.75,.25,1);
 }
+
+/* The origin is derived from each PNG's opaque bounds, not the artboard. */
+.object-visual.is-hovered { transform: scale(1.025); }
+.artboard.has-clickable-object { cursor: pointer; }
+
+.computer-visual { filter: brightness(.75); }
+.computer-day { opacity: calc(1 - var(--night-strength)); }
+.computer-night { opacity: var(--night-strength); }
+
+.chandelier-layer {
+  width: 100%;
+  height: 100%;
+}
+
+.racket-layer, .tennis-layer { transform: translate(-6.5%, -5.8%); }
+.night-wash.night-end { opacity: 0; }
+.lighting-layer { opacity: 0; }
+.chandelier-environment { mix-blend-mode: overlay; }
+.floor-environment { mix-blend-mode: lighten; }
+
+.scene-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+}
+.scene-canvas.is-ready { opacity: 1; }
 
 .night-wash {
   opacity: var(--night-opacity);
@@ -73,15 +116,7 @@ button { font: inherit; }
 }
 
 .tennis-layer { z-index: 14; }
-.tennis-layer.launched { animation: tennis-flight 1.15s cubic-bezier(.22,.7,.3,1) forwards; }
-
-@keyframes tennis-flight {
-  0% { transform: translate(0,0) rotate(0); }
-  18% { transform: translate(2.5%,-7%) rotate(70deg); }
-  42% { transform: translate(8%,-16%) rotate(190deg); }
-  68% { transform: translate(18%,-11%) rotate(330deg); }
-  100% { transform: translate(34%,-20%) rotate(600deg); }
-}
+.tennis-layer.launched { opacity: 0; }
 
 .light {
   position: absolute;
@@ -156,44 +191,30 @@ button { font: inherit; }
   padding: 0;
   background: transparent;
   cursor: pointer;
+  outline: none;
+  box-shadow: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.hotspot::after {
-  content: "";
+/* Native controls remain keyboard-accessible. Pointer hit tests use PNG
+   silhouettes, so these boxes cannot catch the surrounding empty space. */
+.object-control {
   position: absolute;
-  inset: -8%;
-  border: 2px solid rgba(255,255,255,.0);
-  border-radius: 45%;
-  transition: border-color .2s ease, background .2s ease, transform .2s ease;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  pointer-events: none;
+  outline: none;
+  background: transparent;
+  box-shadow: none;
+  -webkit-tap-highlight-color: transparent;
 }
-
-.hotspot:hover::after, .hotspot:focus-visible::after {
-  border-color: rgba(255,255,255,.75);
-  background: rgba(255,255,255,.08);
-  transform: scale(1.05);
-}
-
-.hotspot span {
-  position: absolute;
-  left: 50%;
-  bottom: 100%;
-  transform: translate(-50%, -7px) rotate(-2deg);
-  padding: .25rem .55rem;
-  border-radius: 999px;
-  background: rgba(255,250,240,.92);
-  color: #8a4560;
-  font-size: clamp(10px, .85vw, 16px);
-  white-space: nowrap;
-  opacity: 0;
-  transition: opacity .2s ease, transform .2s ease;
-}
-
-.hotspot:hover span, .hotspot:focus-visible span { opacity: 1; transform: translate(-50%, -11px) rotate(-2deg); }
 
 .tennis-hotspot { left: 86%; top: 79%; width: 14%; height: 20%; }
-.photo-hotspot { left: 36.5%; top: 45.5%; width: 8.5%; height: 11%; }
-.diary-hotspot { left: 49.5%; top: 46%; width: 12%; height: 13%; }
-.painting-hotspot { left: 64%; top: 5%; width: 14%; height: 30%; }
 
 .brand, .time-state, .hint {
   position: fixed;
@@ -203,7 +224,8 @@ button { font: inherit; }
   text-shadow: 0 1px rgba(255,255,255,.45);
 }
 
-.brand { top: max(14px, env(safe-area-inset-top)); left: max(18px, env(safe-area-inset-left)); font-size: clamp(18px, 2.2vw, 36px); transform: rotate(-3deg); }
+.brand { top: max(16px, env(safe-area-inset-top)); left: max(18px, env(safe-area-inset-left)); width: clamp(56px, 6vw, 88px); aspect-ratio: 1.31; overflow: hidden; mix-blend-mode: multiply; }
+.brand img { position: absolute; top: 0; left: 0; width: 254.5%; height: auto; max-width: none; transform: translate(-31.9%, -29%); }
 .time-state { top: max(18px, env(safe-area-inset-top)); right: max(18px, env(safe-area-inset-right)); font-size: clamp(11px, .9vw, 16px); opacity: .7; }
 .hint { bottom: max(14px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); font-size: clamp(11px, .9vw, 15px); opacity: .66; transition: opacity 1s ease; }
 .hint.hidden { opacity: 0; }
@@ -224,6 +246,16 @@ button { font: inherit; }
 .project-dialog p { line-height: 1.7; }
 .eyebrow { margin: 0; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; opacity: .6; }
 .dialog-close { position: absolute; top: 12px; right: 16px; border: 0; background: none; color: inherit; font-size: 28px; cursor: pointer; }
+
+.wind-cursor { display: none; position: fixed; top: 0; left: 0; width: 15px; height: 15px; z-index: 1000; pointer-events: none; opacity: 0; transform: translate(-50%, -50%); transition: width .2s ease, height .2s ease, opacity .1s ease; }
+.wind-cursor.visible { opacity: 1; }
+.wind-cursor.near-flame { width: 25px; height: 25px; }
+.wind-cursor svg { width: 100%; height: 100%; fill: none; stroke: white; stroke-width: 1.7; stroke-linecap: round; filter: drop-shadow(0 0 1px #777); animation: wind-spin 1.8s linear infinite; }
+@keyframes wind-spin { to { transform: rotate(360deg); } }
+@media (pointer: fine) {
+  html, body, button, .artboard, .artboard.has-clickable-object, .hotspot, .dialog-close { cursor: none; }
+  .wind-cursor { display: block; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
