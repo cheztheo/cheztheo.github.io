@@ -2,6 +2,7 @@
   'use strict';
   const W = 2048;
   const H = 1152;
+  const moonlightData = typeof module !== 'undefined' && module.exports ? require('./moonlight-data.js') : global.ChezTheoMoonlightData;
   const BALL_OFFSET = { x: -.065 * W, y: -.058 * H };
   const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
 
@@ -44,16 +45,30 @@
       this.lastFrame = -1000;
       this.dirty = true;
       this.scratch = new Map();
+      this.viewportBackground = null;
+      this.viewportNight = null;
+      this.viewportNightProgress = -1;
       this.nightCanvas = this.newCanvas(W, H);
+      this.moonlightData = images.moonlightAtlas && moonlightData;
+      if (this.moonlightData) {
+        const atlas = this.newCanvas(moonlightData.atlasWidth, moonlightData.atlasHeight);
+        const ax = atlas.getContext('2d');ax.drawImage(images.moonlightAtlas,0,0);
+        this.moonlightPixels = ax.getImageData(0,0,atlas.width,atlas.height).data;
+        this.moonlightHole = this.newCanvas(moonlightData.tileWidth,moonlightData.tileHeight);
+      }
       this.nightProgress = -1;
       this.computerStrength = -1;
       this.staticCanvas = this.newCanvas(W, H);
       this.sprites = {};
+      const groupKeys = ['groupFloor', 'groupChandelier', 'groupEnvironment', 'groupCandle', 'groupFlame0', 'groupFlame1', 'groupFlame2'];
+      this.lightGroups = groupKeys.every((key) => images[key]) ? {} : null;
+      if (this.lightGroups) for (const key of groupKeys) this.lightGroups[key] = this.cropSprite(images[key]);
+      this.ballOffset = this.lightGroups ? { x: 0, y: 0 } : BALL_OFFSET;
       for (const name of ['computerDay', 'computerNight', 'diary', 'painting',
         'tennis', 'floorEmission', 'floorEnvironment', 'haloOne', 'haloTwo',
         'chandelierGlow']) {
         this.sprites[name] = this.cropSprite(images[name],
-          name.startsWith('computer') ? .75 : 1);
+          name === 'computerNight' || (name === 'computerDay' && !this.lightGroups) ? .75 : 1);
       }
       const day = this.sprites.computerDay;
       const night = this.sprites.computerNight;
@@ -69,6 +84,7 @@
         this.rectSprite(images.flames, [1076, 290, 1112, 346]),
         this.rectSprite(images.flames, [1125, 336, 1152, 387])
       ];
+      if (this.lightGroups) this.flames = [this.lightGroups.groupFlame0, this.lightGroups.groupFlame1, this.lightGroups.groupFlame2];
       this.flamePivots = [{ x: 1034, y: 382 }, { x: 1094, y: 341 }, { x: 1138, y: 381 }];
       this.prepareFoliage();
       this.prepareStaticRoom();
@@ -127,6 +143,11 @@
     }
 
     prepareFoliage() {
+      if (this.lightGroups) {
+        this.flowerBase = this.fullCanvas(this.images.flowers);
+        this.leaves = [];
+        return;
+      }
       const base = this.fullCanvas(this.images.flowers);
       const context = base.getContext('2d', { willReadFrequently: true });
       const data = context.getImageData(0, 0, W, H);
@@ -161,21 +182,82 @@
 
     prepareStaticRoom() {
       const context = this.staticCanvas.getContext('2d');
-      context.fillStyle = '#ffffff';
-      context.fillRect(0, 0, W, H);
-      context.globalAlpha = .6;
-      const background = this.images.background;
-      const bw = background.naturalWidth || background.width;
-      const bh = background.naturalHeight || background.height;
-      context.drawImage(background, 1, 1, bw - 2, bh - 2, 0, 0, W, H);
-      context.globalAlpha = 1;
-      context.drawImage(this.images.racket, BALL_OFFSET.x, BALL_OFFSET.y, W, H);
+      // Foreground stays transparent and retains its original contained layout.
+      context.clearRect(0, 0, W, H);
+      context.drawImage(this.images.racket, this.ballOffset.x, this.ballOffset.y, W, H);
       for (const name of ['chandelier', 'floorLamp', 'furniture']) {
         context.drawImage(this.images[name], 0, 0, W, H);
       }
       context.drawImage(this.flowerBase, 0, 0);
       context.drawImage(this.images.glass, 0, 0, W, H);
       context.drawImage(this.images.candlestick, 0, 0, W, H);
+    }
+
+    updateViewport() {
+      const width = this.canvas.width;
+      const height = this.canvas.height;
+      const scale = Math.min(width / W, height / H);
+      this.viewport = { scale, x: (width - W * scale) / 2, y: (height - H * scale) / 2 };
+      if (this.viewportBackground &&
+          this.viewportBackground.width === width && this.viewportBackground.height === height) return;
+      this.viewportBackground = this.newCanvas(width, height);
+      const context = this.viewportBackground.getContext('2d');
+      context.fillStyle = '#ffffff';
+      context.fillRect(0, 0, width, height);
+      const background = this.images.background;
+      const bw = background.naturalWidth || background.width;
+      const bh = background.naturalHeight || background.height;
+      const left = Math.round(this.viewport.x), top = Math.round(this.viewport.y);
+      const right = Math.round(this.viewport.x + W * this.viewport.scale);
+      const bottom = Math.round(this.viewport.y + H * this.viewport.scale);
+      const dw = right-left, dh = bottom-top;
+      context.globalAlpha = .6;
+      context.drawImage(background,0,0,bw,bh,left,top,dw,dh);
+      if(left>0)context.drawImage(background,0,0,1,bh,0,top,left,dh);
+      if(right<width)context.drawImage(background,bw-1,0,1,bh,right,top,width-right,dh);
+      if(top>0)context.drawImage(background,0,0,bw,1,left,0,dw,top);
+      if(bottom<height)context.drawImage(background,0,bh-1,bw,1,left,bottom,dw,height-bottom);
+    }
+
+    drawViewportNight(opacity) {
+      const width = this.canvas.width;
+      const height = this.canvas.height;
+      if (!this.viewportNight ||
+          this.viewportNight.width !== width || this.viewportNight.height !== height) {
+        this.viewportNight = this.newCanvas(width, height);
+        this.viewportNightProgress = -1;
+      }
+      if (this.viewportNightProgress !== this.nightProgress) {
+        this.viewportNightProgress = this.nightProgress;
+        const context = this.viewportNight.getContext('2d');
+        context.clearRect(0, 0, width, height);
+        // Integer adjoining rectangles avoid a new antialiased seam. Extend
+        // the true edge pixels, including transparent moonlight, to the window.
+        const left = Math.round(this.viewport.x);
+        const top = Math.round(this.viewport.y);
+        const right = Math.round(this.viewport.x + W * this.viewport.scale);
+        const bottom = Math.round(this.viewport.y + H * this.viewport.scale);
+        const sw = right - left;
+        const sh = bottom - top;
+        const source = this.nightCanvas;
+        context.drawImage(source, 0, 0, W, H, left, top, sw, sh);
+        if (left > 0) context.drawImage(source, 0, 0, 1, H, 0, top, left, sh);
+        if (right < width) context.drawImage(source, W - 1, 0, 1, H, right, top, width - right, sh);
+        if (top > 0) context.drawImage(source, 0, 0, W, 1, left, 0, sw, top);
+        if (bottom < height) context.drawImage(source, 0, H - 1, W, 1, left, bottom, sw, height - bottom);
+        if (left > 0 && top > 0) context.drawImage(source, 0, 0, 1, 1, 0, 0, left, top);
+        if (right < width && top > 0) context.drawImage(source, W - 1, 0, 1, 1, right, 0, width - right, top);
+        if (left > 0 && bottom < height) context.drawImage(source, 0, H - 1, 1, 1, 0, bottom, left, height - bottom);
+        if (right < width && bottom < height) {
+          context.drawImage(source, W - 1, H - 1, 1, 1, right, bottom, width - right, height - bottom);
+        }
+      }
+      this.ctx.save();
+      this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+      this.ctx.globalCompositeOperation = 'multiply';
+      this.ctx.globalAlpha = opacity;
+      this.ctx.drawImage(this.viewportNight, 0, 0);
+      this.ctx.restore();
     }
 
     setHover(id, active) {
@@ -243,11 +325,11 @@
           return { x: pivot.x + px * cosine - py * sine + (options.dx || 0),
             y: pivot.y + px * sine + py * cosine + (options.dy || 0) };
         });
-      const ratio = this.canvas.width / W;
-      const left = clamp(Math.floor(Math.min(...corners.map((p) => p.x)) * ratio) - 2, 0, this.canvas.width);
-      const top = clamp(Math.floor(Math.min(...corners.map((p) => p.y)) * ratio) - 2, 0, this.canvas.height);
-      const right = clamp(Math.ceil(Math.max(...corners.map((p) => p.x)) * ratio) + 2, 0, this.canvas.width);
-      const bottom = clamp(Math.ceil(Math.max(...corners.map((p) => p.y)) * ratio) + 2, 0, this.canvas.height);
+      const { scale: ratio, x: offsetX, y: offsetY } = this.viewport;
+      const left = clamp(Math.floor(Math.min(...corners.map((p) => p.x)) * ratio + offsetX) - 2, 0, this.canvas.width);
+      const top = clamp(Math.floor(Math.min(...corners.map((p) => p.y)) * ratio + offsetY) - 2, 0, this.canvas.height);
+      const right = clamp(Math.ceil(Math.max(...corners.map((p) => p.x)) * ratio + offsetX) + 2, 0, this.canvas.width);
+      const bottom = clamp(Math.ceil(Math.max(...corners.map((p) => p.y)) * ratio + offsetY) + 2, 0, this.canvas.height);
       const width = right - left;
       const height = bottom - top;
       if (!width || !height) return;
@@ -261,7 +343,7 @@
       const context = scratch.getContext('2d', { willReadFrequently: true });
       context.setTransform(1, 0, 0, 1, 0, 0);
       context.clearRect(0, 0, width, height);
-      context.setTransform(ratio, 0, 0, ratio, -left, -top);
+      context.setTransform(ratio, 0, 0, ratio, offsetX - left, offsetY - top);
       this.draw(context, sprite, options);
       context.setTransform(1, 0, 0, 1, 0, 0);
       const source = context.getImageData(0, 0, width, height);
@@ -287,6 +369,32 @@
     }
 
     updateNight(progress) {
+      if(this.moonlightData){
+        if(Math.abs(progress-this.nightProgress)<.0005)return;
+        this.nightProgress=progress;
+        const context=this.nightCanvas.getContext('2d');
+        context.globalAlpha=1;context.globalCompositeOperation='source-over';
+        context.clearRect(0,0,W,H);
+        if(progress<=0){context.drawImage(this.images.nightStart,0,0,W,H);return;}
+        if(progress>=1){context.drawImage(this.images.nightEnd,0,0,W,H);return;}
+        context.fillStyle='rgb(86,138,212)';context.fillRect(0,0,W,H);
+        const meta=this.moonlightData,tw=meta.tileWidth,th=meta.tileHeight,aw=meta.atlasWidth;
+        const hx=this.moonlightHole.getContext('2d'),pixels=hx.createImageData(tw,th),source=this.moonlightPixels;
+        context.globalCompositeOperation='destination-out';
+        for(let window=0;window<2;window++){
+          for(let y=0;y<th;y++)for(let x=0;x<tw;x++){
+            const a=(y*aw+window*tw+x)*4,b=((th+y)*aw+window*tw+x)*4,i=(y*tw+x)*4;
+            const distance=((source[a]-128)*(1-progress)+(source[b]-128)*progress)/meta.distanceScale;
+            const texture=source[a+1]*(1-progress)+source[b+1]*progress;
+            pixels.data[i+3]=clamp(distance+.5,0,1)*texture;
+          }
+          hx.putImageData(pixels,0,0);
+          const box=meta.boxes[0][window].map((v,i)=>v*(1-progress)+meta.boxes[1][window][i]*progress);
+          context.drawImage(this.moonlightHole,box[0],box[1],box[2],box[3]);
+        }
+        context.globalCompositeOperation='source-over';
+        return;
+      }
       if (Math.abs(progress - this.nightProgress) < .0004) return;
       this.nightProgress = progress;
       const context = this.nightCanvas.getContext('2d');
@@ -328,18 +436,21 @@
           !(ballTime >= 0 && ballTime < 1.55)) return false;
       this.lastFrame = now;
       this.dirty = false;
-      const ratio = this.canvas.width / W;
+      this.updateViewport();
+      const { scale: ratio, x: offsetX, y: offsetY } = this.viewport;
       const context = this.ctx;
-      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      context.setTransform(1, 0, 0, 1, 0, 0);
       context.globalAlpha = 1;
       context.globalCompositeOperation = 'source-over';
+      context.drawImage(this.viewportBackground, 0, 0);
+      context.setTransform(ratio, 0, 0, ratio, offsetX, offsetY);
       context.drawImage(this.staticCanvas, 0, 0);
       const ball = this.sprites.tennis;
       if (ballTime < 0 || ballTime < 1.55) {
-        let dx = BALL_OFFSET.x;
-        let dy = BALL_OFFSET.y;
+        let dx = this.ballOffset.x;
+        let dy = this.ballOffset.y;
         if (ballTime >= 0) {
-          const firstHeight = Math.min(H * .18, ball.top + BALL_OFFSET.y - H * .615);
+          const firstHeight = Math.min(H * .18, ball.top + this.ballOffset.y - H * .615);
           if (ballTime < .72) {
             const t = ballTime / .72;
             dx += W * .045 * t;
@@ -353,20 +464,32 @@
         }
         this.draw(context, ball, { dx, dy, angle: Math.max(0, ballTime) * 1.5 });
       }
-      this.updateComputer(state.strength);
-      this.draw(context, this.sprites.computer, { scale: this.scales.computer });
+      const computerPivot = { x: this.sprites.computer.left + this.sprites.computer.width / 2, y: this.sprites.computer.top + this.sprites.computer.height / 2 };
+      if (this.lightGroups) this.draw(context, this.sprites.computerDay, { opacity: .75, scale: this.scales.computer, pivot: computerPivot });
+      else {
+        this.updateComputer(state.strength);
+        this.draw(context, this.sprites.computer, { scale: this.scales.computer });
+      }
       this.draw(context, this.sprites.diary, { scale: this.scales.diary });
       this.draw(context, this.sprites.painting, { scale: this.scales.painting });
       for (const leaf of this.leaves) this.draw(context, leaf.sprite, { dx: leaf.dx, dy: leaf.dy });
-      if (state.strength > 0) {
-        this.updateNight(state.shadowProgress);
-        context.save();
-        context.globalCompositeOperation = 'multiply';
-        context.globalAlpha = state.strength * .9;
-        context.drawImage(this.nightCanvas, 0, 0);
+      if (this.images.brandLogo) {
+        const box = this.brandBox || { x: this.canvas.width * 22 / W, y: this.canvas.height * 12 / H, width: this.canvas.width * 75 / W, height: this.canvas.width * 58 / W };
+        context.save();context.setTransform(1, 0, 0, 1, 0, 0);
+        context.drawImage(this.images.brandLogo, box.x, box.y, box.width, box.height);
         context.restore();
       }
-      if (state.floor > 0) {
+      if (state.strength > 0) {
+        this.updateNight(state.shadowProgress);
+        this.drawViewportNight(state.strength * (this.lightGroups ? 1 : .9));
+      }
+      if (this.lightGroups) {
+        this.draw(context, this.sprites.computerNight, { opacity: state.strength, scale: this.scales.computer, pivot: computerPivot });
+        this.draw(context, this.lightGroups.groupFloor, { opacity: state.floor });
+        this.draw(context, this.lightGroups.groupChandelier, { opacity: state.chandelier });
+        this.draw(context, this.lightGroups.groupEnvironment, { opacity: state.environment === undefined ? state.chandelier : state.environment });
+        this.draw(context, this.lightGroups.groupCandle, { opacity: state.candle * (this.reducedMotion ? 1 : .985 + .015 * Math.sin(now * .0057)) });
+      } else if (state.floor > 0) {
         this.draw(context, this.sprites.floorEmission, { opacity: state.floor });
         this.customBlend(this.sprites.floorEnvironment, 'lighter-color', state.floor);
       }
@@ -374,8 +497,10 @@
         const sway = this.reducedMotion ? 0 : Math.sin(now * .0037) * .9;
         const first = this.reducedMotion ? 1 : 1 + .025 * Math.sin(now * .0057) + .012 * Math.sin(now * .0091);
         const second = this.reducedMotion ? 1 : 1 + .025 * Math.sin(now * .0041 + 1.8) + .012 * Math.sin(now * .0083);
-        this.customBlend(this.sprites.haloOne, 'linear-light', .38 * state.candle * first, { dx: sway });
-        this.customBlend(this.sprites.haloTwo, 'linear-light', .31 * state.candle * second, { dx: -sway * .7 });
+        if (!this.lightGroups) {
+          this.customBlend(this.sprites.haloOne, 'linear-light', .38 * state.candle * first, { dx: sway });
+          this.customBlend(this.sprites.haloTwo, 'linear-light', .31 * state.candle * second, { dx: -sway * .7 });
+        }
         this.flames.forEach((flame, index) => {
           const pivot = this.flamePivots[index];
           let target = 0;
@@ -388,12 +513,11 @@
           }
           this.leans[index] += (target - this.leans[index]) * (1 - Math.exp(-dt / .09));
           const tinySway = this.reducedMotion ? 0 : Math.sin(now * .006 + index * 1.7) * .018;
-          this.customBlend(flame, 'vivid-light',
-            state.candle * (.97 + .03 * Math.sin(now * .008 + index)),
-            { angle: this.leans[index] + tinySway, pivot });
+          if (this.lightGroups) this.draw(context, flame, { opacity: state.candle * (this.reducedMotion ? 1 : .985 + .015 * Math.sin(now * .008 + index)), angle: this.leans[index] + tinySway, pivot });
+          else this.customBlend(flame, 'vivid-light', state.candle * (.97 + .03 * Math.sin(now * .008 + index)), { angle: this.leans[index] + tinySway, pivot });
         });
       }
-      if (state.chandelier > 0) {
+      if (!this.lightGroups && state.chandelier > 0) {
         this.draw(context, this.sprites.chandelierGlow, { mode: 'overlay', opacity: state.chandelier });
       }
       return true;
@@ -417,17 +541,23 @@
   };
   global.ChezTheoScene.load = async function () {
     const canvas = document.querySelector('#sceneCanvas');
-    const entries = Array.from(document.querySelectorAll('img[data-scene]'));
-    await Promise.all(entries.map((image) => image.decode()));
+    const entries = Array.from(document.querySelectorAll('img[data-scene], canvas[data-tiles]'));
+    await Promise.all(entries.map((image) => image.dataset.tiles
+      ? global.ChezTheoImageTiles.load(image.dataset.tiles, image) : image.decode()));
     const images = Object.fromEntries(entries.map((image) => [image.dataset.scene, image]));
     const makeCanvas = () => document.createElement('canvas');
     const renderer = new RoomRenderer(canvas, images, makeCanvas);
+    document.querySelector('#artboard').classList.toggle('is-grouped',Boolean(renderer.lightGroups));
     const resize = () => {
-      const room = document.querySelector('#room');
-      const width = Math.min(1440, Math.max(960,
-        Math.round(room.clientWidth * Math.min(global.devicePixelRatio || 1, 1.25))));
-      canvas.width = Math.round(width / 16) * 16;
-      canvas.height = canvas.width * 9 / 16;
+      const bounds = canvas.getBoundingClientRect();
+      const scale = Math.min(global.devicePixelRatio || 1, 1.25, 1440 / bounds.width, 960 / bounds.height);
+      canvas.width = Math.max(1, Math.round(bounds.width * scale));
+      canvas.height = Math.max(1, Math.round(bounds.height * scale));
+      const brand = document.querySelector('.brand');
+      if (brand) {
+        const box = brand.getBoundingClientRect(), pixelRatio = canvas.width / bounds.width;
+        renderer.brandBox = { x: (box.left - bounds.left) * pixelRatio, y: (box.top - bounds.top) * pixelRatio, width: box.width * pixelRatio, height: box.height * pixelRatio };
+      }
       renderer.dirty = true;
     };
     resize();

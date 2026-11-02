@@ -92,13 +92,14 @@ button { font: inherit; }
 }
 
 .racket-layer, .tennis-layer { transform: translate(-6.5%, -5.8%); }
+.artboard.is-grouped .racket-layer, .artboard.is-grouped .tennis-layer { transform: none; }
 .night-wash.night-end { opacity: 0; }
 .lighting-layer { opacity: 0; }
 .chandelier-environment { mix-blend-mode: overlay; }
 .floor-environment { mix-blend-mode: lighten; }
 
 .scene-canvas {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 40;
   width: 100%;
@@ -224,8 +225,9 @@ button { font: inherit; }
   text-shadow: 0 1px rgba(255,255,255,.45);
 }
 
-.brand { top: max(16px, env(safe-area-inset-top)); left: max(18px, env(safe-area-inset-left)); width: clamp(56px, 6vw, 88px); aspect-ratio: 1.31; overflow: hidden; mix-blend-mode: multiply; }
-.brand img { position: absolute; top: 0; left: 0; width: 254.5%; height: auto; max-width: none; transform: translate(-31.9%, -29%); }
+.brand { top: max(16px, env(safe-area-inset-top)); left: max(18px, env(safe-area-inset-left)); width: clamp(42px, 4.5vw, 66px); aspect-ratio: 1.31; overflow: hidden; }
+.brand img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.scene-canvas.is-ready ~ .brand { visibility: hidden; }
 .time-state { top: max(18px, env(safe-area-inset-top)); right: max(18px, env(safe-area-inset-right)); font-size: clamp(11px, .9vw, 16px); opacity: .7; }
 .hint { bottom: max(14px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); font-size: clamp(11px, .9vw, 15px); opacity: .66; transition: opacity 1s ease; }
 .hint.hidden { opacity: 0; }
@@ -247,11 +249,13 @@ button { font: inherit; }
 .eyebrow { margin: 0; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; opacity: .6; }
 .dialog-close { position: absolute; top: 12px; right: 16px; border: 0; background: none; color: inherit; font-size: 28px; cursor: pointer; }
 
-.wind-cursor { display: none; position: fixed; top: 0; left: 0; width: 15px; height: 15px; z-index: 1000; pointer-events: none; opacity: 0; transform: translate(-50%, -50%); transition: width .2s ease, height .2s ease, opacity .1s ease; }
+.wind-cursor { display: none; position: fixed; top: 0; left: 0; width: 28px; height: 28px; z-index: 1000; pointer-events: none; opacity: 0; transform: translate(-50%, -50%); transition: width .2s ease, height .2s ease, opacity .1s ease; }
 .wind-cursor.visible { opacity: 1; }
-.wind-cursor.near-flame { width: 25px; height: 25px; }
-.wind-cursor svg { width: 100%; height: 100%; fill: none; stroke: white; stroke-width: 1.7; stroke-linecap: round; filter: drop-shadow(0 0 1px #777); animation: wind-spin 1.8s linear infinite; }
+.wind-cursor.near-flame { width: 38px; height: 38px; }
+.wind-cursor img { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 2px rgba(255,255,255,.9)) drop-shadow(0 0 5px rgba(184,226,255,.65)); mask-image: radial-gradient(circle at 48.5% 48.5%,transparent 0 4.5%,#000 6.3%); -webkit-mask-image: radial-gradient(circle at 48.5% 48.5%,transparent 0 4.5%,#000 6.3%); animation: wind-spin 3.6s linear infinite, wind-glow 2.4s ease-in-out infinite; }
+.wind-cursor.near-flame img { animation-duration: 2s, 1.2s; }
 @keyframes wind-spin { to { transform: rotate(360deg); } }
+@keyframes wind-glow { 50% { filter: drop-shadow(0 0 3px rgba(255,255,255,1)) drop-shadow(0 0 7px rgba(184,226,255,.9)); } }
 @media (pointer: fine) {
   html, body, button, .artboard, .artboard.has-clickable-object, .hotspot, .dialog-close { cursor: none; }
   .wind-cursor { display: block; }

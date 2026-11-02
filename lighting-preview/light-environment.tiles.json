@@ -1,0 +1,41 @@
+{
+  "width": 2048,
+  "height": 1152,
+  "tiles": [
+    {
+      "file": "light-environment-0-0.png",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "file": "light-environment-0-1.png",
+      "x": 1024,
+      "y": 0
+    },
+    {
+      "file": "light-environment-1-0-0.png",
+      "x": 0,
+      "y": 384
+    },
+    {
+      "file": "light-environment-1-0-1.png",
+      "x": 512,
+      "y": 384
+    },
+    {
+      "file": "light-environment-1-1.png",
+      "x": 1024,
+      "y": 384
+    },
+    {
+      "file": "light-environment-2-0.png",
+      "x": 0,
+      "y": 768
+    },
+    {
+      "file": "light-environment-2-1.png",
+      "x": 1024,
+      "y": 768
+    }
+  ]
+}

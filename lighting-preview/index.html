@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Chez Theo · 亮灯预览</title><link rel="stylesheet" href="../styles.css?v=20261102-7"><style>body{background:#568ad4}#preview{display:block;width:100vw;height:100vh;object-fit:contain}.replay{position:fixed;bottom:18px;right:20px;border:0;border-radius:20px;padding:9px 16px;background:rgba(35,65,110,.6);color:#fff;z-index:50}</style></head>
+<body><canvas id="preview" width="2048" height="1152" aria-label="地灯、水晶灯与环境光、烛光依次亮起的预览"></canvas><button class="replay" id="replay">重新亮灯</button><div class="wind-cursor" id="windCursor" aria-hidden="true"><img src="../assets/cursor-vortex.png" alt=""></div><script src="../room-state.js?v=20261102-7"></script><script src="../image-tiles.js?v=20261102-7"></script><script>
+const canvas=document.querySelector('#preview'),ctx=canvas.getContext('2d'),cursor=document.querySelector('#windCursor');
+let started=performance.now(),assets=null;
+const load=src=>src.endsWith('.tiles.json')?ChezTheoImageTiles.load(src):new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=reject;image.src=src;});
+Promise.all([fetch('layers.json').then(r=>r.json()),load('scene-base.tiles.json')]).then(async([meta,base])=>{assets={meta,base,lights:await Promise.all(meta.layers.map(item=>load(item.file)))};started=performance.now();});
+document.querySelector('#replay').onclick=()=>{started=performance.now();};
+document.addEventListener('pointermove',event=>{cursor.style.left=event.clientX+'px';cursor.style.top=event.clientY+'px';cursor.classList.toggle('visible',event.pointerType!=='touch');});
+document.documentElement.addEventListener('pointerleave',()=>cursor.classList.remove('visible'));
+function frame(now){if(assets){ctx.globalAlpha=1;ctx.drawImage(assets.base,0,0);const state=ChezTheoCycle.lightsAtNight(now-started-500);assets.lights.forEach((image,index)=>{ctx.globalAlpha=state[assets.meta.layers[index].state];ctx.drawImage(image,0,0);});}requestAnimationFrame(frame);}requestAnimationFrame(frame);
+</script></body></html>

@@ -1,0 +1,77 @@
+{
+  "canvas": [
+    2048,
+    1152
+  ],
+  "layers": [
+    {
+      "name": "floor",
+      "state": "floor",
+      "file": "light-floor.webp"
+    },
+    {
+      "name": "chandelier",
+      "state": "chandelier",
+      "file": "light-chandelier.png"
+    },
+    {
+      "name": "environment",
+      "state": "chandelier",
+      "file": "light-environment.tiles.json"
+    },
+    {
+      "name": "candle",
+      "state": "candle",
+      "file": "light-candle.png"
+    },
+    {
+      "name": "flame-0",
+      "state": "candle",
+      "file": "light-flame-0.png"
+    },
+    {
+      "name": "flame-1",
+      "state": "candle",
+      "file": "light-flame-1.png"
+    },
+    {
+      "name": "flame-2",
+      "state": "candle",
+      "file": "light-flame-2.png"
+    }
+  ],
+  "delays_ms": {
+    "floor": 0,
+    "chandelier": 1000,
+    "environment": 1000,
+    "candle": 1800
+  },
+  "environment_bound_to": "chandelier",
+  "opacity_baked": {
+    "floor": 0.6,
+    "environment": 0.6,
+    "chandelier": 0.8,
+    "candle": 0.8
+  },
+  "colors": {
+    "floor": "slightly cool ivory",
+    "candle": "warm amber"
+  },
+  "flame_pivots": [
+    [
+      1034,
+      382
+    ],
+    [
+      1094,
+      341
+    ],
+    [
+      1138,
+      381
+    ]
+  ],
+  "reconstruction_max_error": 2,
+  "reconstruction_mean_error": 0.0015662864402488427,
+  "logo_below_night": true
+}

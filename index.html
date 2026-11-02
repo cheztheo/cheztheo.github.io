@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#ffffff">
   <meta name="description" content="Chez Theo — 一个可以慢慢探索的手绘房间。">
   <title>Chez Theo</title>
-  <link rel="stylesheet" href="styles.css?v=20261102-2">
+  <link rel="stylesheet" href="styles.css?v=20261102-7">
 </head>
 <body>
   <main class="site-shell" aria-label="Chez Theo 的手绘房间">
@@ -22,7 +22,7 @@
         <img class="layer" data-scene="glass" src="assets/glass.png" alt="" aria-hidden="true">
         <div class="object-visual computer-visual" id="computerVisual" aria-hidden="true">
           <img class="layer computer-day" id="computerDayLayer" data-scene="computerDay" src="assets/computer-day.png" alt="">
-          <img class="layer computer-night" data-scene="computerNight" src="assets/computer-night.png" alt="">
+          <img class="layer computer-night" data-scene="computerNight" src="assets/computer-night.png?v=20261102-7" alt="">
         </div>
         <img class="layer object-visual" id="diaryVisual" data-scene="diary" src="assets/diary.png?v=20261102-2" alt="" aria-hidden="true">
         <img class="layer" data-scene="candlestick" src="assets/candlestick.png?v=20261102-2" alt="" aria-hidden="true">
@@ -30,6 +30,7 @@
 
         <img class="layer night-wash" id="nightWash" data-scene="nightStart" src="assets/night-shadow-1.png" alt="" aria-hidden="true">
         <img class="layer night-wash night-end" data-scene="nightEnd" src="assets/night-shadow-2.png" alt="" aria-hidden="true">
+        <img class="layer lighting-layer" data-scene="moonlightAtlas" src="assets/moonlight-morph.png" alt="" aria-hidden="true">
 
         <img class="layer lighting-layer" id="floorLight" data-scene="floorEmission" src="assets/floor-emission.png" alt="" aria-hidden="true">
         <img class="layer lighting-layer floor-environment" data-scene="floorEnvironment" src="assets/floor-light-shadow.png" alt="" aria-hidden="true">
@@ -37,8 +38,13 @@
         <img class="layer lighting-layer" data-scene="haloTwo" src="assets/candle-halo-2.png" alt="" aria-hidden="true">
         <img class="layer lighting-layer" data-scene="flames" src="assets/candle-flame.png" alt="" aria-hidden="true">
         <img class="layer lighting-layer chandelier-environment" id="chandelierLight" data-scene="chandelierGlow" src="assets/chandelier-glow.png" alt="" aria-hidden="true">
-
-        <canvas class="scene-canvas" id="sceneCanvas" aria-hidden="true"></canvas>
+        <img class="layer lighting-layer" data-scene="groupFloor" src="lighting-preview/light-floor.webp" alt="" aria-hidden="true">
+        <img class="layer lighting-layer" data-scene="groupChandelier" src="lighting-preview/light-chandelier.png" alt="" aria-hidden="true">
+        <canvas class="layer lighting-layer" data-scene="groupEnvironment" data-tiles="lighting-preview/light-environment.tiles.json" width="2048" height="1152" aria-hidden="true"></canvas>
+        <img class="layer lighting-layer" data-scene="groupCandle" src="lighting-preview/light-candle.png" alt="" aria-hidden="true">
+        <img class="layer lighting-layer" data-scene="groupFlame0" src="lighting-preview/light-flame-0.png" alt="" aria-hidden="true">
+        <img class="layer lighting-layer" data-scene="groupFlame1" src="lighting-preview/light-flame-1.png" alt="" aria-hidden="true">
+        <img class="layer lighting-layer" data-scene="groupFlame2" src="lighting-preview/light-flame-2.png" alt="" aria-hidden="true">
 
         <button class="object-control" id="tennisButton" type="button" aria-label="让网球弹出房间"></button>
         <button class="object-control project" id="computerButton" type="button" data-object="computer" data-project="电脑" aria-label="打开电脑"></button>
@@ -47,7 +53,8 @@
       </div>
     </div>
 
-    <div class="brand" aria-label="Chez Theo"><img src="assets/logo.jpg" alt="Chez Theo 手绘桃子标志"></div>
+    <canvas class="scene-canvas" id="sceneCanvas" aria-hidden="true"></canvas>
+    <div class="brand" aria-label="Chez Theo"><img data-scene="brandLogo" src="assets/logo.png" alt="Chez Theo 手绘桃子标志"></div>
     <div class="time-state" id="timeState" aria-live="polite">白天</div>
     <p class="hint" id="hint">房间里的物件可以点击</p>
   </main>
@@ -59,10 +66,12 @@
     <p>作品正在整理中，很快会住进这个房间。</p>
   </dialog>
 
-  <div class="wind-cursor" id="windCursor" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 10c1-5 10-7 14-2M19 8c3 5-2 11-7 11M12 19c-6 0-8-7-4-10M8 9c4-4 10 2 6 6M14 15c-3 3-7-2-3-4"/></svg></div>
-  <script src="room-state.js?v=20261102-2"></script>
-  <script src="object-interactions.js?v=20261102-2"></script>
-  <script src="scene-renderer.js?v=20261102-2"></script>
-  <script src="script.js?v=20261102-2"></script>
+  <div class="wind-cursor" id="windCursor" aria-hidden="true"><img src="assets/cursor-vortex.png" alt=""></div>
+  <script src="room-state.js?v=20261102-7"></script>
+  <script src="moonlight-data.js?v=20261102-7"></script>
+  <script src="object-interactions.js?v=20261102-7"></script>
+  <script src="image-tiles.js?v=20261102-7"></script>
+  <script src="scene-renderer.js?v=20261102-7"></script>
+  <script src="script.js?v=20261102-7"></script>
 </body>
 </html>

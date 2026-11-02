@@ -4,6 +4,14 @@
   const duration = timing.day + timing.dusk + timing.night + timing.dawn;
   const clamp = (n) => Math.max(0, Math.min(1, n));
   const smooth = (n) => { const t = clamp(n); return t * t * (3 - 2 * t); };
+  const lightDelays = Object.freeze({ floor: 0, chandelier: 1000, environment: 1000, candle: 1800 });
+  const lightFadeDuration = 800;
+
+  function lightsAtNight(milliseconds, strength = 1) {
+    const light = (delay) => milliseconds < delay ? 0 : smooth((milliseconds - delay) / lightFadeDuration) * clamp(strength);
+    const chandelier = light(lightDelays.chandelier);
+    return { floor: light(lightDelays.floor), chandelier, environment: chandelier, candle: light(lightDelays.candle) };
+  }
 
   function cycleAt(milliseconds) {
     const elapsed = ((milliseconds % duration) + duration) % duration;
@@ -26,10 +34,9 @@
       shadowProgress = 1;
       nightElapsed = timing.night + dawnElapsed;
     }
-    const light = (delay) => nightElapsed < delay ? 0 : smooth((nightElapsed - delay) / 800) * strength;
-    return { phase, strength, shadowProgress, floor: light(0), candle: light(1000), chandelier: light(2000) };
+    return { phase, strength, shadowProgress, ...lightsAtNight(nightElapsed, strength) };
   }
-  const api = { timing, duration, cycleAt };
+  const api = { timing, duration, lightDelays, lightFadeDuration, lightsAtNight, cycleAt };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else global.ChezTheoCycle = api;
 })(globalThis);

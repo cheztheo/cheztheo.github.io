@@ -1,0 +1,1 @@
+(function(g){'use strict';const data={"tileWidth":384,"tileHeight":192,"atlasWidth":768,"atlasHeight":384,"distanceScale":2,"boxes":[[[351,882,358,234],[560,845,351,231]],[[1312,958,526,194],[1585,876,463,276]]],"color":[86,138,212]};g.ChezTheoMoonlightData=data;if(typeof module!=='undefined'&&module.exports)module.exports=data;})(globalThis);

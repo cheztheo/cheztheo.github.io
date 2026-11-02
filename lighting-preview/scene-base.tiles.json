@@ -1,0 +1,36 @@
+{
+  "width": 2048,
+  "height": 1152,
+  "tiles": [
+    {
+      "file": "scene-base-0-0.png",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "file": "scene-base-0-1.png",
+      "x": 1024,
+      "y": 0
+    },
+    {
+      "file": "scene-base-1-0.png",
+      "x": 0,
+      "y": 384
+    },
+    {
+      "file": "scene-base-1-1.png",
+      "x": 1024,
+      "y": 384
+    },
+    {
+      "file": "scene-base-2-0.png",
+      "x": 0,
+      "y": 768
+    },
+    {
+      "file": "scene-base-2-1.png",
+      "x": 1024,
+      "y": 768
+    }
+  ]
+}
