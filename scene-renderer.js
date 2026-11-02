@@ -257,17 +257,22 @@
         const sw = right - left;
         const sh = bottom - top;
         const source = this.nightCanvas;
-        context.drawImage(source, 0, 0, W, H, left, top, sw, sh);
-        if (left > 0) context.drawImage(source, 0, 0, 1, H, 0, top, left, sh);
-        if (right < width) context.drawImage(source, W - 1, 0, 1, H, right, top, width - right, sh);
-        if (top > 0) context.drawImage(source, 0, 0, W, 1, left, 0, sw, top);
-        if (bottom < height) context.drawImage(source, 0, H - 1, W, 1, left, bottom, sw, height - bottom);
-        if (left > 0 && top > 0) context.drawImage(source, 0, 0, 1, 1, 0, 0, left, top);
-        if (right < width && top > 0) context.drawImage(source, W - 1, 0, 1, 1, right, 0, width - right, top);
-        if (left > 0 && bottom < height) context.drawImage(source, 0, H - 1, 1, 1, 0, bottom, left, height - bottom);
+        // Softly extend the paper grain outside the original artwork. Draw
+        // the original last so its moonlight and shadow shapes stay exact.
+        context.filter = 'blur(3px)';
+        const pad = 8;
+        if (left > 0) context.drawImage(source, 0, 0, 1, H, -pad, top-pad, left+pad*2, sh+pad*2);
+        if (right < width) context.drawImage(source, W - 1, 0, 1, H, right-pad, top-pad, width-right+pad*2, sh+pad*2);
+        if (top > 0) context.drawImage(source, 0, 0, W, 1, left-pad, -pad, sw+pad*2, top+pad*2);
+        if (bottom < height) context.drawImage(source, 0, H - 1, W, 1, left-pad, bottom-pad, sw+pad*2, height-bottom+pad*2);
+        if (left > 0 && top > 0) context.drawImage(source, 0, 0, 1, 1, -pad, -pad, left+pad*2, top+pad*2);
+        if (right < width && top > 0) context.drawImage(source, W - 1, 0, 1, 1, right-pad, -pad, width-right+pad*2, top+pad*2);
+        if (left > 0 && bottom < height) context.drawImage(source, 0, H - 1, 1, 1, -pad, bottom-pad, left+pad*2, height-bottom+pad*2);
         if (right < width && bottom < height) {
-          context.drawImage(source, W - 1, H - 1, 1, 1, right, bottom, width - right, height - bottom);
+          context.drawImage(source, W - 1, H - 1, 1, 1, right-pad, bottom-pad, width-right+pad*2, height-bottom+pad*2);
         }
+        context.filter = 'none';
+        context.drawImage(source, 0, 0, W, H, left, top, sw, sh);
       }
       this.ctx.save();
       this.ctx.setTransform(1, 0, 0, 1, 0, 0);

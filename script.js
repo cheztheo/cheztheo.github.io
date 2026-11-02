@@ -12,10 +12,12 @@ const dialogClose = document.querySelector('#dialogClose');
 const cursor = document.querySelector('#windCursor');
 const scene = window.ChezTheoScene;
 const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
-const startedAt = performance.now();
+const previewOffset = document.body.hasAttribute('data-night-preview')
+  ? ChezTheoCycle.timing.day + ChezTheoCycle.timing.dusk : 0;
+let startedAt = performance.now() - previewOffset;
 let renderer = null;
 let previousPhase = '';
-let state = ChezTheoCycle.cycleAt(0);
+let state = ChezTheoCycle.cycleAt(previewOffset);
 let pointer = null;
 let drag = null;
 let suppressDragClick = false;
@@ -43,11 +45,15 @@ requestAnimationFrame(updateCycle);
 
 scene.load().then((readyRenderer) => {
   renderer = readyRenderer;
+  if (previewOffset) startedAt = performance.now() - previewOffset;
   if (ballLaunched) renderer.launchBall(performance.now());
 }).catch((error) => {
   console.error('The room artwork could not be loaded.', error);
   hint.textContent = '部分图片没有加载完成，请刷新后再试';
   hint.classList.remove('hidden');
+});
+document.querySelector('#replay')?.addEventListener('click', () => {
+  startedAt = performance.now() - previewOffset;
 });
 
 tennisButton.addEventListener('click', () => {
