@@ -68,6 +68,7 @@
         this.sprites[name] = this.cropSprite(images[name],
           name === 'computerNight' || (name === 'computerDay' && !this.lightGroups) ? .75 : 1);
       }
+      this.sprites.tennis.sourceImage = images.tennis;
       const day = this.sprites.computerDay;
       const night = this.sprites.computerNight;
       const left = Math.min(day.left, night.left);
@@ -288,33 +289,16 @@
       const original = this.images.background;
       const bw = original.naturalWidth || original.width;
       const bh = original.naturalHeight || original.height;
-      if (!this.cleanBackground) {
-        // Remove only the exported frame stroke; keep all interior artwork at
-        // its exact original coordinates, including its flat pink outlines.
-        this.cleanBackground = this.newCanvas(bw, bh);
-        const clean = this.cleanBackground.getContext('2d');
-        clean.imageSmoothingEnabled = false;
-        clean.drawImage(original, 0, 0);
-        clean.clearRect(0, 0, bw, 1);
-        clean.clearRect(0, bh - 1, bw, 1);
-        clean.clearRect(0, 0, 1, bh);
-        clean.clearRect(bw - 1, 0, 1, bh);
-        clean.drawImage(original, 1, 1, bw - 2, 1, 1, 0, bw - 2, 1);
-        clean.drawImage(original, 1, bh - 2, bw - 2, 1, 1, bh - 1, bw - 2, 1);
-        clean.drawImage(original, 1, 1, 1, bh - 2, 0, 1, 1, bh - 2);
-        clean.drawImage(original, bw - 2, 1, 1, bh - 2, bw - 1, 1, 1, bh - 2);
-      }
-      const background = this.cleanBackground;
-      const left = Math.round(this.viewport.x) - 2, top = Math.round(this.viewport.y) - 2;
-      const right = Math.round(this.viewport.x + W * this.viewport.scale) + 2;
-      const bottom = Math.round(this.viewport.y + H * this.viewport.scale) + 2;
-      const dw = right-left, dh = bottom-top;
-      context.globalAlpha = 1;
-      context.drawImage(background,0,0,bw,bh,left,top,dw,dh);
-      if(left>0)context.drawImage(background,0,0,1,bh,0,top,left,dh);
-      if(right<width)context.drawImage(background,bw-1,0,1,bh,right,top,width-right,dh);
-      if(top>0)context.drawImage(background,0,0,bw,1,left,0,dw,top);
-      if(bottom<height)context.drawImage(background,0,bh-1,bw,1,left,bottom,dw,height-bottom);
+      // Display the uploaded PNG directly, without altering its pixels. Expand
+      // only the background enough to cover the window's width, with a 2px
+      // overhang on each side. Foreground scale and positions stay independent.
+      const backgroundScale = Math.max(scale, (width + 4) / bw);
+      const dw = bw * backgroundScale, dh = bh * backgroundScale;
+      const left = (width - dw) / 2, top = (height - dh) / 2;
+      context.drawImage(original, left, top, dw, dh);
+      if (top > 0) context.drawImage(original, 0, 0, bw, 1, left, 0, dw, top);
+      if (top + dh < height) context.drawImage(original, 0, bh - 1, bw, 1, left, top + dh, dw, height - top - dh);
+      this.backgroundViewport = { scale: backgroundScale, x: left, y: top, width: dw, height: dh };
     }
 
     drawViewportNight(opacity) {
@@ -407,7 +391,11 @@
       context.translate(pivot.x + (options.dx || 0), pivot.y + (options.dy || 0));
       context.rotate(options.angle || 0);
       context.scale(options.scale || 1, options.scale || 1);
-      context.drawImage(sprite.canvas, sprite.left - pivot.x, sprite.top - pivot.y);
+      if (sprite.sourceImage) {
+        const image = sprite.sourceImage, sx = (image.naturalWidth || image.width) / W, sy = (image.naturalHeight || image.height) / H;
+        context.drawImage(image, sprite.left * sx, sprite.top * sy, sprite.width * sx, sprite.height * sy,
+          sprite.left - pivot.x, sprite.top - pivot.y, sprite.width, sprite.height);
+      } else context.drawImage(sprite.canvas, sprite.left - pivot.x, sprite.top - pivot.y);
       context.restore();
     }
 
@@ -520,7 +508,13 @@
       context.globalCompositeOperation = 'source-over';
       context.drawImage(this.viewportBackground, 0, 0);
       context.setTransform(ratio, 0, 0, ratio, offsetX, offsetY);
-      context.drawImage(this.staticCanvas, 0, 0);
+      // Read original full-resolution PNGs at the final display transform;
+      // avoid a reduced-resolution intermediate for the furniture and racket.
+      context.drawImage(this.images.racket, this.ballOffset.x, this.ballOffset.y, W, H);
+      for (const name of ['chandelier', 'floorLamp', 'furniture']) context.drawImage(this.images[name], 0, 0, W, H);
+      context.drawImage(this.flowerBase, 0, 0);
+      context.drawImage(this.images.glass, 0, 0, W, H);
+      context.drawImage(this.images.candlestick, 0, 0, W, H);
       const ball = this.sprites.tennis;
       if (ballTime < 0 || ballTime < 1.55) {
         let dx = this.ballOffset.x;
@@ -626,7 +620,7 @@
     document.querySelector('#artboard').classList.toggle('is-grouped',Boolean(renderer.lightGroups));
     const resize = () => {
       const bounds = canvas.getBoundingClientRect();
-      const scale = Math.min(global.devicePixelRatio || 1, 1.25, 1440 / bounds.width, 960 / bounds.height);
+      const scale = global.devicePixelRatio || 1;
       canvas.width = Math.max(1, Math.round(bounds.width * scale));
       canvas.height = Math.max(1, Math.round(bounds.height * scale));
       const brand = document.querySelector('.brand');

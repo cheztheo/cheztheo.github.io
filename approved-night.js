@@ -20,6 +20,8 @@
     reference.reducedMotion = true;
     reference.render(10000, { strength: 1, shadowProgress: 1, floor: 1, chandelier: 1, environment: 1, candle: 1 }, true);
     const baseline = reference.ctx.getImageData(0, 0, CW, H).data;
+    reference.render(10000, { strength: 1, shadowProgress: 1, floor: 0, chandelier: 0, environment: 0, candle: 0 }, true);
+    const cleanNight = reference.ctx.getImageData(0, 0, CW, H).data;
     const targetCanvas = create(CW, H);
     targetCanvas.getContext('2d').drawImage(renderer.images.approvedNight, 0, 0, CW, H);
     const target = targetCanvas.getContext('2d').getImageData(0, 0, CW, H).data;
@@ -29,13 +31,15 @@
     foregroundContext.drawImage(reference.staticCanvas, inset, 0);
     foregroundContext.save(); foregroundContext.translate(inset, 0);
     for (const leaf of reference.leaves) reference.draw(foregroundContext, leaf.sprite, { dx: leaf.dx, dy: leaf.dy });
+    for (const key of ['tennis', 'computerDay', 'computerNight', 'diary', 'painting']) reference.draw(foregroundContext, reference.sprites[key]);
+    for (const flame of reference.flames) reference.draw(foregroundContext, flame);
     foregroundContext.restore();
     const foreground = foregroundCanvas.getContext('2d').getImageData(0, 0, CW, H).data;
 
     // Restore the uploaded furniture pixels, rather than the softened furniture
     // in the flattened reference. The independent lighting remains unchanged.
     const furnitureCanvas = create(CW, H), furnitureContext = furnitureCanvas.getContext('2d');
-    furnitureContext.drawImage(referenceImages.furniture, inset, 0, W, H);
+    for (const key of ['furniture', 'racket', 'tennis']) furnitureContext.drawImage(referenceImages[key], inset, 0, W, H);
     const furniturePixels = furnitureContext.getImageData(0, 0, CW, H).data;
     function expandMask(pixels, radius) {
       const horizontal = new Uint8Array(CW * H), mask = new Uint8Array(CW * H);
@@ -60,7 +64,7 @@
       return mask;
     }
     furnitureContext.clearRect(0, 0, CW, H);
-    for (const key of ['flowers', 'glass', 'candlestick', 'computerDay', 'computerNight', 'diary', 'painting', 'racket', 'tennis', 'floorLamp', 'chandelier']) furnitureContext.drawImage(referenceImages[key], inset, 0, W, H);
+    for (const key of ['flowers', 'glass', 'candlestick', 'computerDay', 'computerNight', 'diary', 'painting', 'floorLamp', 'chandelier']) furnitureContext.drawImage(referenceImages[key], inset, 0, W, H);
     function softenMask(mask, radius) {
       const horizontal = new Float32Array(CW * H), softened = new Float32Array(CW * H), size = radius * 2 + 1;
       for (let y = 0; y < H; y++) {
@@ -90,6 +94,33 @@
       if (!originalFurnitureMask[pixel]) continue;
       const p = pixel * 4;
       for (let c = 0; c < 3; c++) target[p + c] += (baseline[p + c] - target[p + c]) * originalFurnitureMask[pixel];
+    }
+
+    // The architecture comes from the uploaded background beneath the night
+    // wash. Keep the reference's soft lamp halos, never its flattened outlines.
+    const smoothField = (low, high, value) => {
+      const t = clamp((value - low) / (high - low)); return t * t * (3 - 2 * t);
+    };
+    const foregroundMask = softenMask(expandMask(foreground, 3), 3);
+    const halo = (x, y, cx, cy, rx, ry) => 1 - smoothField(.55, 1, Math.hypot((x - cx) / rx, (y - cy) / ry));
+    const targetContext = targetCanvas.getContext('2d'), targetData = targetContext.createImageData(CW, H);
+    targetData.data.set(target); targetContext.putImageData(targetData, 0, 0);
+    const lightingFieldCanvas = create(CW, H), lightingFieldContext = lightingFieldCanvas.getContext('2d');
+    lightingFieldContext.filter = 'blur(18px)'; lightingFieldContext.drawImage(targetCanvas, 0, 0);
+    const lightingField = lightingFieldContext.getImageData(0, 0, CW, H).data;
+    const backgroundKeep = new Float32Array(CW * H);
+    for (let y = 0; y < H; y++) for (let column = 0; column < CW; column++) {
+      const x = column - inset, pixel = y * CW + column, p = pixel * 4;
+      const chandelierInterior = (1 - smoothField(270, 315, y)) * smoothField(685, 725, x) * (1 - smoothField(1235, 1275, x));
+      const keepObject = Math.max(foregroundMask[pixel], originalFurnitureMask[pixel], chandelierInterior);
+      const keepLight = Math.max(halo(x, y, 210, 870, 170, 170), halo(x, y, 1000, 150, 330, 205), halo(x, y, 1060, 350, 155, 170));
+      backgroundKeep[pixel] = keepObject;
+      const hasLight = lightingField[p] > renderer.moonlightData.color[0] + 3;
+      for (let c = 0; c < 3; c++) {
+        const light = hasLight ? lightingField[p + c] - renderer.moonlightData.color[c] : 0;
+        const backdrop = Math.max(0, Math.min(255, cleanNight[p + c] + light * keepLight));
+        target[p + c] = backdrop + (target[p + c] - backdrop) * keepObject;
+      }
     }
 
     const groups = [];
@@ -222,7 +253,7 @@
       delete group.plus; delete group.minus; delete group.unlitPlus; delete group.unlitMinus;
     }
     const activeGroups = groups.filter(group => group.count);
-    renderer.approvedNight = { groups: activeGroups, referenceSize: [CW, H], nativeArtInset: inset, previewMatched: true, originalFurnitureMask };
+    renderer.approvedNight = { groups: activeGroups, referenceSize: [CW, H], nativeArtInset: inset, previewMatched: true, originalFurnitureMask, backgroundKeep };
     renderer.leafAt = () => null;
 
     function ballPose(now) {
