@@ -18,7 +18,6 @@ let startedAt = performance.now() - previewOffset;
 let renderer = null;
 let previousPhase = '';
 let state = ChezTheoCycle.cycleAt(previewOffset);
-let previewShadowProgress = null;
 let pointer = null;
 let drag = null;
 let suppressDragClick = false;
@@ -26,9 +25,6 @@ let ballLaunched = false;
 
 function updateCycle(now) {
   state = ChezTheoCycle.cycleAt(now - startedAt);
-  if (previewOffset && previewShadowProgress !== null) {
-    state = { phase: '夜晚', strength: 1, shadowProgress: previewShadowProgress, ...ChezTheoCycle.lightsAtNight(5000) };
-  }
   root.style.setProperty('--night-opacity', (state.strength * .9).toFixed(5));
   root.style.setProperty('--night-strength', state.strength.toFixed(5));
   if (state.phase !== previousPhase) {
@@ -55,13 +51,6 @@ scene.load().then((readyRenderer) => {
   console.error('The room artwork could not be loaded.', error);
   hint.textContent = '部分图片没有加载完成，请刷新后再试';
   hint.classList.remove('hidden');
-});
-document.querySelector('#replay')?.addEventListener('click', () => {
-  previewShadowProgress = null;
-  startedAt = performance.now() - previewOffset;
-});
-document.querySelector('#moonlightEnd')?.addEventListener('click', () => {
-  previewShadowProgress = 1;
 });
 
 tennisButton.addEventListener('click', () => {

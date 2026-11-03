@@ -225,7 +225,7 @@ button { font: inherit; }
   text-shadow: 0 1px rgba(255,255,255,.45);
 }
 
-.brand { top: max(16px, env(safe-area-inset-top)); left: max(18px, env(safe-area-inset-left)); width: clamp(42px, 4.5vw, 66px); aspect-ratio: 1.31; overflow: hidden; }
+.brand { top: max(10px, env(safe-area-inset-top)); left: max(19px, env(safe-area-inset-left)); width: clamp(42px, 4.5vw, 62px); aspect-ratio: 62 / 47; overflow: hidden; }
 .brand img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .scene-canvas.is-ready ~ .brand { visibility: hidden; }
 .time-state { top: max(18px, env(safe-area-inset-top)); right: max(18px, env(safe-area-inset-right)); font-size: clamp(11px, .9vw, 16px); opacity: .7; }
@@ -249,13 +249,16 @@ button { font: inherit; }
 .eyebrow { margin: 0; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; opacity: .6; }
 .dialog-close { position: absolute; top: 12px; right: 16px; border: 0; background: none; color: inherit; font-size: 28px; cursor: pointer; }
 
-.wind-cursor { display: none; position: fixed; top: 0; left: 0; width: 21px; height: 21px; z-index: 1000; pointer-events: none; opacity: 0; transform: translate(-50%, -50%); transition: width .2s ease, height .2s ease, opacity .1s ease; }
+.wind-cursor { --cursor-size: 21px; --eye-inner: 2.4px; --eye-outer: 3.1px; display: none; position: fixed; top: 0; left: 0; width: 21px; height: 21px; z-index: 1000; pointer-events: none; opacity: 0; transform: translate(-50%, -50%); transition: width .2s ease, height .2s ease, opacity .1s ease; }
 .wind-cursor.visible { opacity: 1; }
-.wind-cursor.near-flame { width: 28.5px; height: 28.5px; }
-.wind-cursor img { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 2px rgba(255,255,255,.75)) drop-shadow(0 0 5px rgba(221,221,221,.45)); mask-image: radial-gradient(circle closest-side at 49% 50.5%,transparent 0 23%,#000 29% 82%,transparent 100%); -webkit-mask-image: radial-gradient(circle closest-side at 49% 50.5%,transparent 0 23%,#000 29% 82%,transparent 100%); animation: wind-spin 1.8s linear infinite, wind-glow 2.4s ease-in-out infinite; }
-.wind-cursor.near-flame img { animation-duration: 1s, 1.2s; }
+.wind-cursor.near-flame { --cursor-size: 28.5px; --eye-inner: 3.25px; --eye-outer: 4.2px; width: 28.5px; height: 28.5px; }
+.wind-eye { position: absolute; left: 50%; top: 50%; display: grid; place-items: center; width: 64px; height: 64px; transform: translate(-50%, -50%); mask-image: radial-gradient(circle at 50% 50%,transparent 0 var(--eye-inner),#000 var(--eye-outer) 100%); -webkit-mask-image: radial-gradient(circle at 50% 50%,transparent 0 var(--eye-inner),#000 var(--eye-outer) 100%); }
+.wind-light { display: block; width: var(--cursor-size); height: var(--cursor-size); filter: drop-shadow(0 0 1px rgba(255,255,255,1)) drop-shadow(0 0 3px rgba(255,255,255,.95)) drop-shadow(0 0 7px rgba(245,245,245,.65)); animation: wind-glow 2.4s ease-in-out infinite; }
+.wind-cursor img { display: block; width: 100%; height: 100%; object-fit: contain; mask-image: radial-gradient(circle closest-side at 49% 50.5%,transparent 0 23%,#000 29% 82%,transparent 100%); -webkit-mask-image: radial-gradient(circle closest-side at 49% 50.5%,transparent 0 23%,#000 29% 82%,transparent 100%); animation: wind-spin .9s linear infinite; }
+.wind-cursor.near-flame img { animation-duration: .5s; }
+.wind-cursor.near-flame .wind-light { animation-duration: 1.2s; }
 @keyframes wind-spin { to { transform: rotate(360deg); } }
-@keyframes wind-glow { 50% { filter: drop-shadow(0 0 3px rgba(255,255,255,.95)) drop-shadow(0 0 7px rgba(221,221,221,.65)); } }
+@keyframes wind-glow { 50% { filter: drop-shadow(0 0 1.4px rgba(255,255,255,1)) drop-shadow(0 0 4.5px rgba(255,255,255,.98)) drop-shadow(0 0 10px rgba(245,245,245,.75)); } }
 @media (pointer: fine) {
   html, body, button, .artboard, .artboard.has-clickable-object, .hotspot, .dialog-close { cursor: none; }
   .wind-cursor { display: block; }

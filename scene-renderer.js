@@ -305,9 +305,9 @@
         clean.drawImage(original, bw - 2, 1, 1, bh - 2, bw - 1, 1, 1, bh - 2);
       }
       const background = this.cleanBackground;
-      const left = Math.round(this.viewport.x), top = Math.round(this.viewport.y);
-      const right = Math.round(this.viewport.x + W * this.viewport.scale);
-      const bottom = Math.round(this.viewport.y + H * this.viewport.scale);
+      const left = Math.round(this.viewport.x) - 2, top = Math.round(this.viewport.y) - 2;
+      const right = Math.round(this.viewport.x + W * this.viewport.scale) + 2;
+      const bottom = Math.round(this.viewport.y + H * this.viewport.scale) + 2;
       const dw = right-left, dh = bottom-top;
       context.globalAlpha = 1;
       context.drawImage(background,0,0,bw,bh,left,top,dw,dh);
@@ -549,7 +549,7 @@
       this.draw(context, this.sprites.diary, { scale: this.scales.diary });
       this.draw(context, this.sprites.painting, { scale: this.scales.painting });
       for (const leaf of this.leaves) this.draw(context, leaf.sprite, { dx: leaf.dx, dy: leaf.dy });
-      if (this.images.brandLogo) {
+      if (this.images.brandLogo && !this.approvedNight) {
         const box = this.brandBox || { x: this.canvas.width * 22 / W, y: this.canvas.height * 12 / H, width: this.canvas.width * 75 / W, height: this.canvas.width * 58 / W };
         context.save();context.setTransform(1, 0, 0, 1, 0, 0);
         context.drawImage(this.images.brandLogo, box.x, box.y, box.width, box.height);
