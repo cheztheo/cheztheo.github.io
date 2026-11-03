@@ -305,12 +305,14 @@
       const original = this.images.background;
       const bw = original.naturalWidth || original.width;
       const bh = original.naturalHeight || original.height;
-      // Display the uploaded PNG directly, without altering its pixels. Expand
-      // only the background enough to cover the window's width, with a 2px
-      // overhang on each side. Foreground scale and positions stay independent.
-      const backgroundScale = Math.max(scale, (width + 4) / bw);
+      // Keep the previous background's displayed height and vertical anchor,
+      // even when the uploaded PNG has a different canvas aspect ratio.
+      // The -11px source registration aligns the existing cabinet landmarks.
+      // Only the background transforms; foreground geometry stays independent.
+      const layoutScale = Math.max(scale, (width + 4) / W);
+      const backgroundScale = H * layoutScale / bh;
       const dw = bw * backgroundScale, dh = bh * backgroundScale;
-      const left = (width - dw) / 2, top = (height - dh) / 2;
+      const left = (width - dw) / 2 - 11 * layoutScale, top = (height - dh) / 2;
       context.drawImage(original, left, top, dw, dh);
       if (top > 0) context.drawImage(original, 0, 0, bw, 1, left, 0, dw, top);
       if (top + dh < height) context.drawImage(original, 0, bh - 1, bw, 1, left, top + dh, dw, height - top - dh);
