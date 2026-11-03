@@ -296,8 +296,10 @@
       const height = this.canvas.height;
       const scale = Math.min(width / W, height / H);
       this.viewport = { scale, x: (width - W * scale) / 2, y: (height - H * scale) / 2 };
+      const pixelRatio = this.displayPixelRatio || 1;
       if (this.viewportBackground &&
-          this.viewportBackground.width === width && this.viewportBackground.height === height) return;
+          this.viewportBackground.width === width && this.viewportBackground.height === height && this.backgroundPixelRatio === pixelRatio) return;
+      this.backgroundPixelRatio = pixelRatio;
       this.viewportBackground = this.newCanvas(width, height);
       const context = this.viewportBackground.getContext('2d');
       context.fillStyle = '#ffffff';
@@ -305,18 +307,14 @@
       const original = this.images.background;
       const bw = original.naturalWidth || original.width;
       const bh = original.naturalHeight || original.height;
-      // Keep the previous background's displayed height and vertical anchor,
-      // even when the uploaded PNG has a different canvas aspect ratio.
-      // The -11px source registration aligns the existing cabinet landmarks.
-      // Only the background transforms; foreground geometry stays independent.
-      const layoutScale = Math.max(scale, (width + 4) / W);
-      const backgroundScale = H * layoutScale / bh;
-      const dw = bw * backgroundScale, dh = bh * backgroundScale;
-      const left = (width - dw) / 2 - 11 * layoutScale, top = (height - dh) / 2;
-      context.drawImage(original, left, top, dw, dh);
-      if (top > 0) context.drawImage(original, 0, 0, bw, 1, left, 0, dw, top);
-      if (top + dh < height) context.drawImage(original, 0, bh - 1, bw, 1, left, top + dh, dw, height - top - dh);
-      this.backgroundViewport = { scale: backgroundScale, x: left, y: top, width: dw, height: dh };
+      // One source pixel occupies one CSS pixel. The canvas pixel ratio only
+      // accounts for screen density; it never fits the image to the window.
+      // Center the original bitmap and let the viewport clip any overflow.
+      const dw = bw * pixelRatio, dh = bh * pixelRatio;
+      const left = (width - dw) / 2, top = (height - dh) / 2;
+      context.save(); context.translate(left, top); context.scale(pixelRatio, pixelRatio);
+      context.drawImage(original, 0, 0); context.restore();
+      this.backgroundViewport = { scale: pixelRatio, x: left, y: top, width: dw, height: dh };
     }
 
     drawViewportNight(opacity) {
@@ -646,6 +644,7 @@
       const scale = global.devicePixelRatio || 1;
       canvas.width = Math.max(1, Math.round(bounds.width * scale));
       canvas.height = Math.max(1, Math.round(bounds.height * scale));
+      renderer.displayPixelRatio = scale;
       const brand = document.querySelector('.brand');
       if (brand) {
         const box = brand.getBoundingClientRect(), pixelRatio = canvas.width / bounds.width;

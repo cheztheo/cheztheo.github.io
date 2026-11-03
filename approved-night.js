@@ -17,6 +17,8 @@
     delete referenceImages.approvedNight;
     const referenceCanvas = create(CW, H);
     const reference = new renderer.constructor(referenceCanvas, referenceImages, renderer.makeCanvas);
+    renderer.updateViewport();
+    reference.displayPixelRatio = (renderer.displayPixelRatio || 1) / renderer.viewport.scale;
     reference.reducedMotion = true;
     reference.render(10000, { strength: 1, shadowProgress: 1, floor: 1, chandelier: 1, environment: 1, candle: 1 }, true);
     const baseline = reference.ctx.getImageData(0, 0, CW, H).data;
