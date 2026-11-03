@@ -69,7 +69,7 @@ button { font: inherit; }
   -webkit-user-drag: none;
 }
 
-.background { opacity: 1; width: auto; height: auto; max-width: none; max-height: none; left: 50%; top: 50%; right: auto; bottom: auto; object-fit: none; transform: translate(-50%, -50%); }
+.background { opacity: 1; width: auto; height: 100%; max-width: none; max-height: none; left: 49.462890625%; top: 50%; right: auto; bottom: auto; object-fit: contain; transform: translate(-50%, -50%); }
 
 .object-visual {
   position: absolute;
