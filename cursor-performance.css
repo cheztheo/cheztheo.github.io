@@ -1,0 +1,7 @@
+/* Keep pointer movement independent of room layout and canvas painting. */
+.wind-cursor {
+  transform: translate3d(-100px, -100px, 0) translate(-50%, -50%);
+  will-change: transform, opacity;
+  contain: layout style;
+}
+.wind-cursor img { will-change: transform; }

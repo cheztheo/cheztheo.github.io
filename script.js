@@ -22,11 +22,23 @@ let pointer = null;
 let drag = null;
 let suppressDragClick = false;
 let ballLaunched = false;
+let previousStrength = '';
+let previousNightOpacity = '';
+let artboardBounds = artboard.getBoundingClientRect();
+window.addEventListener('resize', () => { artboardBounds = artboard.getBoundingClientRect(); });
 
 function updateCycle(now) {
   state = ChezTheoCycle.cycleAt(now - startedAt);
-  root.style.setProperty('--night-opacity', (state.strength * .9).toFixed(5));
-  root.style.setProperty('--night-strength', state.strength.toFixed(5));
+  const nightOpacity = (state.strength * .9).toFixed(5);
+  const strength = state.strength.toFixed(5);
+  if (nightOpacity !== previousNightOpacity) {
+    root.style.setProperty('--night-opacity', nightOpacity);
+    previousNightOpacity = nightOpacity;
+  }
+  if (strength !== previousStrength) {
+    root.style.setProperty('--night-strength', strength);
+    previousStrength = strength;
+  }
   if (state.phase !== previousPhase) {
     timeState.textContent = state.phase;
     previousPhase = state.phase;
@@ -34,7 +46,7 @@ function updateCycle(now) {
   if (renderer) {
     renderer.reducedMotion = motionPreference.matches;
     renderer.render(now, state);
-    document.querySelector('#sceneCanvas').classList.add('is-ready');
+    if (renderer.hasFrame !== false) renderer.canvas.classList.add('is-ready');
     const near = state.candle > 0 && pointer && renderer.flamePivots.some((pivot) =>
       Math.hypot(pointer.x - pivot.x, pointer.y - (pivot.y - 22)) < pointer.radius);
     cursor.classList.toggle('near-flame', Boolean(near));
@@ -76,24 +88,23 @@ dialog.addEventListener('click', (event) => {
 });
 
 function roomPoint(event) {
-  const bounds = artboard.getBoundingClientRect();
+  const bounds = artboardBounds;
   return { u: (event.clientX - bounds.left) / bounds.width,
     v: (event.clientY - bounds.top) / bounds.height, bounds };
 }
 
 document.addEventListener('pointermove', (event) => {
-  cursor.style.left = event.clientX + 'px';
-  cursor.style.top = event.clientY + 'px';
+  cursor.style.transform = `translate3d(${event.clientX}px, ${event.clientY}px, 0) translate(-50%, -50%)`;
   cursor.classList.toggle('visible', event.pointerType !== 'touch');
   const point = roomPoint(event);
   if (point.u < 0 || point.u > 1 || point.v < 0 || point.v > 1 || dialog.open) {
     pointer = null;
   } else {
     pointer = { x: point.u * 2048, y: point.v * 1152,
-      radius: Math.max(25, room.clientWidth * .025) / room.clientWidth * 2048 };
+      radius: Math.max(25, point.bounds.width * .025) / point.bounds.width * 2048 };
   }
   if (renderer) renderer.setPointer(pointer);
-});
+}, { passive: true });
 document.documentElement.addEventListener('pointerleave', () => {
   pointer = null;
   cursor.classList.remove('visible', 'near-flame');
