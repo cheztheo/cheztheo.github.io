@@ -3,6 +3,7 @@
   const W = 2048;
   const H = 1152;
   const moonlightData = typeof module !== 'undefined' && module.exports ? require('./moonlight-data.js') : global.ChezTheoMoonlightData;
+  const shadowMorph = typeof module !== 'undefined' && module.exports ? require('./shadow-morph.js') : global.ChezTheoShadowMorph;
   const BALL_OFFSET = { x: -.065 * W, y: -.058 * H };
   const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
   const smooth = (low, high, value) => {
@@ -196,13 +197,28 @@
       const context = sprite.canvas.getContext('2d');
       const pixels = context.getImageData(0, 0, sprite.width, sprite.height);
       const ratio = this.tableEnvironmentOpacity / .6;
+      const fieldCanvas = this.newCanvas(sprite.width, sprite.height), fieldContext = fieldCanvas.getContext('2d');
+      fieldContext.filter = 'blur(32px)'; fieldContext.drawImage(sprite.canvas, 0, 0);
+      const field = fieldContext.getImageData(0, 0, sprite.width, sprite.height).data;
+      this.tableShadowMap = new Uint8Array(W * H);
+      let shadowPixels = 0;
       for (let y = 0; y < sprite.height; y++) for (let x = 0; x < sprite.width; x++) {
-        const radius = Math.hypot((sprite.left + x - 1000) / 350, (sprite.top + y - 674) / 215);
+        const px = sprite.left + x, py = sprite.top + y, i = (y * sprite.width + x) * 4;
+        const radius = Math.hypot((px - 1000) / 350, (py - 674) / 215);
         const surface = 1 - smooth(.94, 1.04, radius);
-        pixels.data[(y * sprite.width + x) * 4 + 3] *= 1 - surface * (1 - ratio);
+        const alpha = pixels.data[i + 3], fieldAlpha = field[i + 3];
+        // Keep the original cast-shadow cutouts near the book, glass, vase,
+        // pen and laptop. Smooth only their surrounding illumination field.
+        const castRegion = smooth(755, 790, px) * (1 - smooth(1230, 1270, px)) * smooth(520, 555, py) * (1 - smooth(735, 765, py));
+        const deficit = fieldAlpha ? (fieldAlpha - alpha) / fieldAlpha : 0;
+        const shadow = castRegion * smooth(.18, .5, deficit);
+        if (shadow > .999 && surface > .5) shadowPixels++;
+        this.tableShadowMap[py * W + px] = Math.round(shadow * 255);
+        pixels.data[i + 3] = alpha * (1 - surface * (1 - ratio));
       }
       context.putImageData(pixels, 0, 0);
       sprite.data = pixels.data;
+      this.tableIllumination = { preservedShadowPixels: shadowPixels };
     }
 
     brightenComputerScreen() {
@@ -463,6 +479,11 @@
       if (progress === this.nightProgress || (progress > 0 && progress < 1 && Math.abs(progress - this.nightProgress) < .0001)) return;
       this.nightProgress = progress;
       const meta = this.moonlightData;
+      if (meta.morphMode === 'two-pane-mesh' && shadowMorph) {
+        if (!this.shadowMorph) this.shadowMorph = shadowMorph.create(this, meta);
+        this.shadowMorph.draw(progress, this.nightCanvas.getContext('2d'));
+        return;
+      }
       if (!this.originalMoonlight) {
         this.originalMoonlight = this.fullCanvas(this.images[meta.source]);
         const ox = this.originalMoonlight.getContext('2d');

@@ -87,7 +87,8 @@
       }
       return softened;
     }
-    const protectedObjects = softenMask(expandMask(furnitureContext.getImageData(0, 0, CW, H).data, 18), 12);
+    const objectPixels = furnitureContext.getImageData(0, 0, CW, H).data;
+    const protectedObjects = softenMask(expandMask(objectPixels, 18), 12);
     const originalFurnitureMask = softenMask(expandMask(furniturePixels, 36), 24);
     for (let pixel = 0; pixel < CW * H; pixel++) {
       originalFurnitureMask[pixel] *= 1 - protectedObjects[pixel];
@@ -123,6 +124,57 @@
       }
     }
 
+    // Smooth the illumination, not the original checked fabric. Work with the
+    // signed light contribution relative to the unlit scene, and leave both
+    // the physical objects and the uploaded cast-shadow cutouts untouched.
+    const tableObjects = softenMask(expandMask(objectPixels, 2), 2);
+    const tableLightMask = new Uint8Array(CW * H);
+    const tableSurface = new Float32Array(CW * H);
+    const lightCanvas = create(CW, H), lightContext = lightCanvas.getContext('2d');
+    const lightData = lightContext.createImageData(CW, H);
+    for (let y = 450; y < 930; y++) {
+      let left = CW, right = 0;
+      for (let x = 620; x < 1380; x++) {
+        const p = (y * CW + x + inset) * 4;
+        if (furniturePixels[p + 3] > 15 && furniturePixels[p] > furniturePixels[p + 1] + 25 && furniturePixels[p + 2] > 120) {
+          left = Math.min(left, x); right = Math.max(right, x);
+        }
+      }
+      if (right <= left) continue;
+      for (let x = left; x <= right; x++) {
+        const pixel = y * CW + x + inset, p = pixel * 4;
+        const surface = smoothField(0, 8, x - left) * smoothField(0, 8, right - x);
+        const shadow = reference.tableShadowMap ? reference.tableShadowMap[y * W + x] / 255 : 0;
+        const weight = surface * (1 - tableObjects[pixel]) * (1 - shadow);
+        tableSurface[pixel] = weight;
+        for (let c = 0; c < 3; c++) lightData.data[p + c] = 128 + (target[p + c] - cleanNight[p + c]) * .5;
+        lightData.data[p + 3] = weight * 255;
+      }
+    }
+    lightContext.putImageData(lightData, 0, 0);
+    const evenCanvas = create(CW, H), evenContext = evenCanvas.getContext('2d');
+    evenContext.filter = 'blur(30px)'; evenContext.drawImage(lightCanvas, 0, 0);
+    const evenLight = evenContext.getImageData(0, 0, CW, H).data;
+    let samples = 0, beforeSum = 0, beforeSquares = 0, afterSum = 0, afterSquares = 0, preservedShadows = 0;
+    for (let y = 450; y < 930; y++) for (let x = 620; x < 1380; x++) {
+      const pixel = y * CW + x + inset, p = pixel * 4, weight = tableSurface[pixel];
+      const shadow = reference.tableShadowMap ? reference.tableShadowMap[y * W + x] / 255 : 0;
+      if (shadow > .999 && tableObjects[pixel] < .01) preservedShadows++;
+      if (!weight || evenLight[p + 3] < 2) continue;
+      const before = target[p] - cleanNight[p];
+      for (let c = 0; c < 3; c++) {
+        const desired = Math.max(0, Math.min(255, cleanNight[p + c] + (evenLight[p + c] - 128) * 2));
+        target[p + c] += (desired - target[p + c]) * weight;
+      }
+      tableLightMask[pixel] = Math.max(1, Math.round(weight * 255));
+      if (weight > .98) {
+        const after = target[p] - cleanNight[p];
+        beforeSum += before; beforeSquares += before * before; afterSum += after; afterSquares += after * after; samples++;
+      }
+    }
+    const tableLighting = { samples, preservedShadows, variationBefore: beforeSquares / samples - (beforeSum / samples) ** 2,
+      variationAfter: afterSquares / samples - (afterSum / samples) ** 2 };
+
     const groups = [];
     const add = (kind, extra = {}) => {
       const group = { kind, ...extra, left: W, top: H, right: 0, bottom: 0, count: 0 };
@@ -147,7 +199,8 @@
       if (baseline[p] === target[p] && baseline[p + 1] === target[p + 1] && baseline[p + 2] === target[p + 2]) continue;
       let owner = staticGroup;
       const object = objects.find(object => inside(object.sprite, x, y));
-      if (object) owner = object.group;
+      if (tableLightMask[pixel]) owner = environmentGroup;
+      else if (object) owner = object.group;
       else if (inside(renderer.sprites.tennis, x, y, 5)) owner = ballGroup;
       else {
         let nearest = -1, distance = Infinity;
@@ -253,7 +306,7 @@
       delete group.plus; delete group.minus; delete group.unlitPlus; delete group.unlitMinus;
     }
     const activeGroups = groups.filter(group => group.count);
-    renderer.approvedNight = { groups: activeGroups, referenceSize: [CW, H], nativeArtInset: inset, previewMatched: true, originalFurnitureMask, backgroundKeep };
+    renderer.approvedNight = { groups: activeGroups, referenceSize: [CW, H], nativeArtInset: inset, previewMatched: true, originalFurnitureMask, backgroundKeep, tableLightMask, tableLighting };
     renderer.leafAt = () => null;
 
     function ballPose(now) {
@@ -332,6 +385,47 @@
       return canvas;
     }
     let correctionBuffers;
+    let moonPaper, moonMask;
+    const physicalMasks = new Map();
+    function solidMask(canvas) {
+      const mask = create(canvas.width, canvas.height), context = mask.getContext('2d');
+      const pixels = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+      for (let p = 0; p < pixels.data.length; p += 4) {
+        pixels.data[p] = pixels.data[p + 1] = pixels.data[p + 2] = 255;
+        pixels.data[p + 3] = pixels.data[p + 3] > 2 ? 255 : 0;
+      }
+      context.putImageData(pixels, 0, 0); return mask;
+    }
+    function maskSprite(sprite) {
+      if (!physicalMasks.has(sprite)) physicalMasks.set(sprite, { left: sprite.left, top: sprite.top, width: sprite.width, height: sprite.height, canvas: solidMask(sprite.canvas) });
+      return physicalMasks.get(sprite);
+    }
+    let staticPhysicalMask;
+    function cleanMovingMoonlight(now, state) {
+      if (!staticPhysicalMask) staticPhysicalMask = solidMask(renderer.staticCanvas);
+      const width = renderer.canvas.width, height = renderer.canvas.height;
+      if (!moonPaper || moonPaper.width !== width || moonPaper.height !== height) { moonPaper = create(width, height); moonMask = create(width, height); }
+      const mask = moonMask.getContext('2d'), paper = moonPaper.getContext('2d'), viewport = renderer.viewport;
+      mask.setTransform(1, 0, 0, 1, 0, 0); mask.globalAlpha = 1; mask.globalCompositeOperation = 'source-over';
+      mask.fillStyle = '#fff'; mask.fillRect(0, 0, width, height);
+      mask.globalCompositeOperation = 'destination-out'; mask.drawImage(renderer.viewportNight, 0, 0);
+      mask.save(); mask.setTransform(viewport.scale, 0, 0, viewport.scale, viewport.x, viewport.y);
+      mask.drawImage(staticPhysicalMask, 0, 0);
+      for (const id of ['computerDay', 'computerNight', 'diary', 'painting']) {
+        const objectId = id.startsWith('computer') ? 'computer' : id;
+        const object = objects.find(item => item.id === objectId);
+        renderer.draw(mask, maskSprite(renderer.sprites[id]), { mode: 'destination-out', scale: renderer.scales[objectId], pivot: groups[object.group].pivot });
+      }
+      const ball = ballPose(now);
+      if (ball) renderer.draw(mask, maskSprite(renderer.sprites.tennis), { ...ball, mode: 'destination-out' });
+      mask.restore();
+      paper.setTransform(1, 0, 0, 1, 0, 0); paper.globalAlpha = 1; paper.globalCompositeOperation = 'source-over';
+      paper.drawImage(renderer.viewportBackground, 0, 0);
+      paper.globalCompositeOperation = 'multiply'; paper.globalAlpha = state.strength; paper.drawImage(renderer.viewportNight, 0, 0);
+      paper.globalAlpha = 1; paper.globalCompositeOperation = 'destination-in'; paper.drawImage(moonMask, 0, 0);
+      const context = renderer.ctx;
+      context.save(); context.setTransform(1, 0, 0, 1, 0, 0); context.globalAlpha = 1; context.globalCompositeOperation = 'source-over'; context.drawImage(moonPaper, 0, 0); context.restore();
+    }
     renderer.render = function (now, state, force = false) {
       const rendered = originalRender.call(this, now, state, force);
       if (!rendered) return false;
@@ -397,6 +491,7 @@
         context.globalCompositeOperation = 'lighter'; for (let i = 0; i < 3; i++) context.drawImage(correctionBuffers.positive, 0, 0);
         context.restore();
       }
+      if (movingMoon && state.strength > 0) cleanMovingMoonlight(now, state);
       drawBrand(state);
       return true;
     };
