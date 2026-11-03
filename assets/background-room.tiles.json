@@ -1,0 +1,36 @@
+{
+  "width": 1730,
+  "height": 909,
+  "tiles": [
+    {
+      "file": "background-room-0-0.webp",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "file": "background-room-0-1.webp",
+      "x": 865,
+      "y": 0
+    },
+    {
+      "file": "background-room-1-0.webp",
+      "x": 0,
+      "y": 303
+    },
+    {
+      "file": "background-room-1-1.webp",
+      "x": 865,
+      "y": 303
+    },
+    {
+      "file": "background-room-2-0.webp",
+      "x": 0,
+      "y": 606
+    },
+    {
+      "file": "background-room-2-1.webp",
+      "x": 865,
+      "y": 606
+    }
+  ]
+}

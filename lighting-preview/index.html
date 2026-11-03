@@ -7,14 +7,14 @@
   <meta name="description" content="Chez Theo — 一个可以慢慢探索的手绘房间。">
   <base href="../">
   <title>Chez Theo · 亮灯预览</title>
-  <style>.replay{position:fixed;bottom:18px;right:20px;border:0;border-radius:20px;padding:9px 16px;background:rgba(35,65,110,.6);color:#fff;z-index:2000}</style>
-  <link rel="stylesheet" href="styles.css?v=20261103-1">
+  <style>.preview-actions{position:fixed;bottom:18px;right:20px;display:flex;gap:8px;z-index:2000}.replay{border:0;border-radius:20px;padding:9px 16px;background:rgba(35,65,110,.6);color:#fff}</style>
+  <link rel="stylesheet" href="styles.css?v=20261103-2">
 </head>
 <body data-night-preview>
   <main class="site-shell" aria-label="Chez Theo 的手绘房间">
     <div class="room" id="room">
       <div class="artboard" id="artboard">
-        <img class="layer background" data-scene="background" src="assets/background.png" alt="手绘房间背景">
+        <canvas class="layer background" data-scene="background" data-tiles="assets/background-room.tiles.json" width="1730" height="909" role="img" aria-label="手绘房间背景"></canvas>
         <img class="layer racket-layer" data-scene="racket" src="assets/racket.png" alt="" aria-hidden="true">
         <img class="layer tennis-layer" id="tennisLayer" data-scene="tennis" src="assets/tennis.png" alt="" aria-hidden="true">
         <img class="layer chandelier-layer" data-scene="chandelier" src="assets/chandelier.png" alt="" aria-hidden="true">
@@ -32,7 +32,6 @@
 
         <img class="layer night-wash" id="nightWash" data-scene="nightStart" src="assets/night-shadow-1.png" alt="" aria-hidden="true">
         <img class="layer night-wash night-end" data-scene="nightEnd" src="assets/night-shadow-2.png" alt="" aria-hidden="true">
-        <img class="layer lighting-layer" data-scene="moonlightAtlas" src="assets/moonlight-morph.png" alt="" aria-hidden="true">
 
         <img class="layer lighting-layer" id="floorLight" data-scene="floorEmission" src="assets/floor-emission.png" alt="" aria-hidden="true">
         <img class="layer lighting-layer floor-environment" data-scene="floorEnvironment" src="assets/floor-light-shadow.png" alt="" aria-hidden="true">
@@ -69,12 +68,12 @@
   </dialog>
 
   <div class="wind-cursor" id="windCursor" aria-hidden="true"><img src="assets/cursor-vortex.png?v=20261103-1" alt=""></div>
-  <button class="replay" id="replay" type="button">重新亮灯</button>
+  <div class="preview-actions"><button class="replay" id="moonlightEnd" type="button">查看月光末帧</button><button class="replay" id="replay" type="button">重新亮灯</button></div>
   <script src="room-state.js?v=20261102-7"></script>
-  <script src="moonlight-data.js?v=20261102-7"></script>
+  <script src="moonlight-data.js?v=20261103-2"></script>
   <script src="object-interactions.js?v=20261102-7"></script>
   <script src="image-tiles.js?v=20261102-7"></script>
-  <script src="scene-renderer.js?v=20261102-9"></script>
-  <script src="script.js?v=20261102-8"></script>
+  <script src="scene-renderer.js?v=20261103-2"></script>
+  <script src="script.js?v=20261103-2"></script>
 </body>
 </html>

@@ -73,5 +73,20 @@
   ],
   "reconstruction_max_error": 2,
   "reconstruction_mean_error": 0.0015662864402488427,
-  "logo_below_night": true
+  "logo_below_night": true,
+  "runtime_opacity": {
+    "table_environment": 0.5,
+    "chair_environment": 0.6
+  },
+  "candle_halo_tracks_flame": true,
+  "moonlight": {
+    "compositing": "single-mask",
+    "end_translation": [
+      32,
+      24
+    ],
+    "preserve_final_shape": true,
+    "motion": "translate-only",
+    "source": "night-shadow-2.png"
+  }
 }

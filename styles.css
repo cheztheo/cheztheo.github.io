@@ -69,7 +69,7 @@ button { font: inherit; }
   -webkit-user-drag: none;
 }
 
-.background { opacity: .6; }
+.background { opacity: 1; }
 
 .object-visual {
   position: absolute;
@@ -249,11 +249,11 @@ button { font: inherit; }
 .eyebrow { margin: 0; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; opacity: .6; }
 .dialog-close { position: absolute; top: 12px; right: 16px; border: 0; background: none; color: inherit; font-size: 28px; cursor: pointer; }
 
-.wind-cursor { display: none; position: fixed; top: 0; left: 0; width: 28px; height: 28px; z-index: 1000; pointer-events: none; opacity: 0; transform: translate(-50%, -50%); transition: width .2s ease, height .2s ease, opacity .1s ease; }
+.wind-cursor { display: none; position: fixed; top: 0; left: 0; width: 21px; height: 21px; z-index: 1000; pointer-events: none; opacity: 0; transform: translate(-50%, -50%); transition: width .2s ease, height .2s ease, opacity .1s ease; }
 .wind-cursor.visible { opacity: 1; }
-.wind-cursor.near-flame { width: 38px; height: 38px; }
-.wind-cursor img { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 2px rgba(255,255,255,.75)) drop-shadow(0 0 5px rgba(221,221,221,.45)); mask-image: radial-gradient(circle closest-side at 49% 50.5%,transparent 0 23%,#000 29%); -webkit-mask-image: radial-gradient(circle closest-side at 49% 50.5%,transparent 0 23%,#000 29%); animation: wind-spin 3.6s linear infinite, wind-glow 2.4s ease-in-out infinite; }
-.wind-cursor.near-flame img { animation-duration: 2s, 1.2s; }
+.wind-cursor.near-flame { width: 28.5px; height: 28.5px; }
+.wind-cursor img { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 2px rgba(255,255,255,.75)) drop-shadow(0 0 5px rgba(221,221,221,.45)); mask-image: radial-gradient(circle closest-side at 49% 50.5%,transparent 0 23%,#000 29% 82%,transparent 100%); -webkit-mask-image: radial-gradient(circle closest-side at 49% 50.5%,transparent 0 23%,#000 29% 82%,transparent 100%); animation: wind-spin 1.8s linear infinite, wind-glow 2.4s ease-in-out infinite; }
+.wind-cursor.near-flame img { animation-duration: 1s, 1.2s; }
 @keyframes wind-spin { to { transform: rotate(360deg); } }
 @keyframes wind-glow { 50% { filter: drop-shadow(0 0 3px rgba(255,255,255,.95)) drop-shadow(0 0 7px rgba(221,221,221,.65)); } }
 @media (pointer: fine) {

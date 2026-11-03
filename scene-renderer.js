@@ -5,6 +5,10 @@
   const moonlightData = typeof module !== 'undefined' && module.exports ? require('./moonlight-data.js') : global.ChezTheoMoonlightData;
   const BALL_OFFSET = { x: -.065 * W, y: -.058 * H };
   const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
+  const smooth = (low, high, value) => {
+    const t = clamp((value - low) / (high - low), 0, 1);
+    return t * t * (3 - 2 * t);
+  };
 
   // Nonseparable Lighter Color, Linear Light and Vivid Light are not CSS
   // mix-blend-mode values. Composite their actual source pixels explicitly.
@@ -49,13 +53,7 @@
       this.viewportNight = null;
       this.viewportNightProgress = -1;
       this.nightCanvas = this.newCanvas(W, H);
-      this.moonlightData = images.moonlightAtlas && moonlightData;
-      if (this.moonlightData) {
-        const atlas = this.newCanvas(moonlightData.atlasWidth, moonlightData.atlasHeight);
-        const ax = atlas.getContext('2d');ax.drawImage(images.moonlightAtlas,0,0);
-        this.moonlightPixels = ax.getImageData(0,0,atlas.width,atlas.height).data;
-        this.moonlightHole = this.newCanvas(moonlightData.tileWidth,moonlightData.tileHeight);
-      }
+      this.moonlightData = moonlightData || { color: [86, 138, 212], source: 'nightEnd', startTranslation: [-960, -60], endTranslation: [32, 24] };
       this.nightProgress = -1;
       this.computerStrength = -1;
       this.staticCanvas = this.newCanvas(W, H);
@@ -86,6 +84,11 @@
       ];
       if (this.lightGroups) this.flames = [this.lightGroups.groupFlame0, this.lightGroups.groupFlame1, this.lightGroups.groupFlame2];
       this.flamePivots = [{ x: 1034, y: 382 }, { x: 1094, y: 341 }, { x: 1138, y: 381 }];
+      this.flameCenters = [{ x: 1033.36, y: 353.35 }, { x: 1095.73, y: 318.45 }, { x: 1139.60, y: 361.80 }];
+      this.tableEnvironmentOpacity = .5;
+      this.prepareCandleGroups();
+      this.prepareTableEnvironment();
+      this.brightenComputerScreen();
       this.prepareFoliage();
       this.prepareStaticRoom();
     }
@@ -140,6 +143,84 @@
       canvas.getContext('2d').drawImage(image, left, top, right - left, bottom - top,
         0, 0, canvas.width, canvas.height);
       return { canvas, left, top, width: canvas.width, height: canvas.height };
+    }
+
+    prepareCandleGroups() {
+      if (!this.lightGroups) return;
+      const originals = [this.lightGroups.groupCandle, ...this.flames];
+      const left = Math.min(...originals.map(s => s.left));
+      const top = Math.min(...originals.map(s => s.top));
+      const width = Math.max(...originals.map(s => s.left + s.width)) - left;
+      const height = Math.max(...originals.map(s => s.top + s.height)) - top;
+      const combined = this.newCanvas(width, height), cx = combined.getContext('2d');
+      cx.translate(-left, -top);
+      for (const sprite of originals) this.draw(cx, sprite);
+      const source = cx.getImageData(0, 0, width, height);
+      const parts = Array.from({ length: 4 }, () => cx.createImageData(width, height));
+      for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+        const i = (y * width + x) * 4, alpha = source.data[i + 3] / 255;
+        if (!alpha) continue;
+        const radii = this.flameCenters.map(p => Math.hypot((left + x - p.x) / 65, (top + y - p.y) / 78));
+        const scores = radii.map(r => 1 - smooth(.45, 1.1, r));
+        const amount = Math.max(...scores), total = scores.reduce((a, b) => a + b, 0);
+        const weights = [1 - amount, ...scores.map(s => total ? s / total * amount : 0)];
+        const nearest = radii.indexOf(Math.min(...radii));
+        // A flame core belongs to exactly one moving candle, never to its neighbor.
+        if (radii[nearest] < .35) { weights.fill(0); weights[nearest + 1] = 1; }
+        const density = Math.log1p(-Math.min(alpha, .999999));
+        const bytes = weights.map(w => w ? Math.round((1 - Math.exp(density * w)) * 255) : 0);
+        const owner = weights.indexOf(Math.max(...weights));
+        let other = 1;
+        bytes.forEach((a, j) => { if (j !== owner) other *= 1 - a / 255; });
+        bytes[owner] = Math.max(bytes[owner], Math.ceil(255 * clamp(1 - (1 - alpha) / Math.max(other, 1e-9), 0, 1)));
+        parts.forEach((part, j) => {
+          part.data.set(source.data.subarray(i, i + 3), i);
+          part.data[i + 3] = bytes[j];
+        });
+      }
+      const sprites = parts.map(part => {
+        const canvas = this.newCanvas(width, height);
+        canvas.getContext('2d').putImageData(part, 0, 0);
+        return { canvas, left, top, width, height, data: part.data };
+      });
+      this.lightGroups.groupCandle = sprites[0];
+      // The complete near glow and flame now share one canvas and one transform.
+      this.flames = sprites.slice(1);
+      this.candleHaloAttached = true;
+    }
+
+    prepareTableEnvironment() {
+      if (!this.lightGroups) return;
+      const sprite = this.lightGroups.groupEnvironment;
+      const context = sprite.canvas.getContext('2d');
+      const pixels = context.getImageData(0, 0, sprite.width, sprite.height);
+      const ratio = this.tableEnvironmentOpacity / .6;
+      for (let y = 0; y < sprite.height; y++) for (let x = 0; x < sprite.width; x++) {
+        const radius = Math.hypot((sprite.left + x - 1000) / 350, (sprite.top + y - 674) / 215);
+        const surface = 1 - smooth(.94, 1.04, radius);
+        pixels.data[(y * sprite.width + x) * 4 + 3] *= 1 - surface * (1 - ratio);
+      }
+      context.putImageData(pixels, 0, 0);
+      sprite.data = pixels.data;
+    }
+
+    brightenComputerScreen() {
+      const sprite = this.sprites.computerNight;
+      const context = sprite.canvas.getContext('2d');
+      const pixels = context.getImageData(0, 0, sprite.width, sprite.height);
+      const corners = [[1018, 591], [1109, 551], [1127, 617], [1040, 658]];
+      for (let y = 0; y < sprite.height; y++) for (let x = 0; x < sprite.width; x++) {
+        const px = x + sprite.left, py = y + sprite.top;
+        let distance = Infinity;
+        corners.forEach(([ax, ay], j) => {
+          const [bx, by] = corners[(j + 1) % corners.length];
+          distance = Math.min(distance, ((bx - ax) * (py - ay) - (by - ay) * (px - ax)) / Math.hypot(bx - ax, by - ay));
+        });
+        const factor = 1 + .28 * smooth(0, 3, distance), i = (y * sprite.width + x) * 4;
+        for (let c = 0; c < 3; c++) pixels.data[i + c] = Math.min(255, pixels.data[i + c] * factor);
+      }
+      context.putImageData(pixels, 0, 0);
+      sprite.data = pixels.data;
     }
 
     prepareFoliage() {
@@ -228,7 +309,7 @@
       const right = Math.round(this.viewport.x + W * this.viewport.scale);
       const bottom = Math.round(this.viewport.y + H * this.viewport.scale);
       const dw = right-left, dh = bottom-top;
-      context.globalAlpha = .6;
+      context.globalAlpha = 1;
       context.drawImage(background,0,0,bw,bh,left,top,dw,dh);
       if(left>0)context.drawImage(background,0,0,1,bh,0,top,left,dh);
       if(right<width)context.drawImage(background,bw-1,0,1,bh,right,top,width-right,dh);
@@ -257,19 +338,18 @@
         const sw = right - left;
         const sh = bottom - top;
         const source = this.nightCanvas;
-        // Softly extend the paper grain outside the original artwork. Draw
-        // the original last so its moonlight and shadow shapes stay exact.
-        context.filter = 'blur(3px)';
-        const pad = 8;
-        if (left > 0) context.drawImage(source, 0, 0, 1, H, -pad, top-pad, left+pad*2, sh+pad*2);
-        if (right < width) context.drawImage(source, W - 1, 0, 1, H, right-pad, top-pad, width-right+pad*2, sh+pad*2);
-        if (top > 0) context.drawImage(source, 0, 0, W, 1, left-pad, -pad, sw+pad*2, top+pad*2);
-        if (bottom < height) context.drawImage(source, 0, H - 1, W, 1, left-pad, bottom-pad, sw+pad*2, height-bottom+pad*2);
-        if (left > 0 && top > 0) context.drawImage(source, 0, 0, 1, 1, -pad, -pad, left+pad*2, top+pad*2);
-        if (right < width && top > 0) context.drawImage(source, W - 1, 0, 1, 1, right-pad, -pad, width-right+pad*2, top+pad*2);
-        if (left > 0 && bottom < height) context.drawImage(source, 0, H - 1, 1, 1, -pad, bottom-pad, left+pad*2, height-bottom+pad*2);
+        // Extend the exact edge alpha. Filtering one-pixel strips makes
+        // them translucent and creates light blue sidebars on wide screens.
+        context.filter = 'none';
+        if (left > 0) context.drawImage(source, 0, 0, 1, H, 0, top, left, sh);
+        if (right < width) context.drawImage(source, W - 1, 0, 1, H, right, top, width - right, sh);
+        if (top > 0) context.drawImage(source, 0, 0, W, 1, left, 0, sw, top);
+        if (bottom < height) context.drawImage(source, 0, H - 1, W, 1, left, bottom, sw, height - bottom);
+        if (left > 0 && top > 0) context.drawImage(source, 0, 0, 1, 1, 0, 0, left, top);
+        if (right < width && top > 0) context.drawImage(source, W - 1, 0, 1, 1, right, 0, width - right, top);
+        if (left > 0 && bottom < height) context.drawImage(source, 0, H - 1, 1, 1, 0, bottom, left, height - bottom);
         if (right < width && bottom < height) {
-          context.drawImage(source, W - 1, H - 1, 1, 1, right-pad, bottom-pad, width-right+pad*2, height-bottom+pad*2);
+          context.drawImage(source, W - 1, H - 1, 1, 1, right, bottom, width - right, height - bottom);
         }
         context.filter = 'none';
         context.drawImage(source, 0, 0, W, H, left, top, sw, sh);
@@ -391,55 +471,29 @@
     }
 
     updateNight(progress) {
-      if(this.moonlightData){
-        if(Math.abs(progress-this.nightProgress)<.0005)return;
-        this.nightProgress=progress;
-        const context=this.nightCanvas.getContext('2d');
-        context.globalAlpha=1;context.globalCompositeOperation='source-over';
-        context.clearRect(0,0,W,H);
-        if(progress<=0){context.drawImage(this.images.nightStart,0,0,W,H);return;}
-        if(progress>=1){context.drawImage(this.images.nightEnd,0,0,W,H);return;}
-        context.fillStyle='rgb(86,138,212)';context.fillRect(0,0,W,H);
-        const meta=this.moonlightData,tw=meta.tileWidth,th=meta.tileHeight,aw=meta.atlasWidth;
-        const hx=this.moonlightHole.getContext('2d'),pixels=hx.createImageData(tw,th),source=this.moonlightPixels;
-        context.globalCompositeOperation='destination-out';
-        for(let window=0;window<2;window++){
-          for(let y=0;y<th;y++)for(let x=0;x<tw;x++){
-            const a=(y*aw+window*tw+x)*4,b=((th+y)*aw+window*tw+x)*4,i=(y*tw+x)*4;
-            const distance=((source[a]-128)*(1-progress)+(source[b]-128)*progress)/meta.distanceScale;
-            const texture=source[a+1]*(1-progress)+source[b+1]*progress;
-            pixels.data[i+3]=clamp(distance+.5,0,1)*texture;
-          }
-          hx.putImageData(pixels,0,0);
-          const box=meta.boxes[0][window].map((v,i)=>v*(1-progress)+meta.boxes[1][window][i]*progress);
-          context.drawImage(this.moonlightHole,box[0],box[1],box[2],box[3]);
-        }
-        context.globalCompositeOperation='source-over';
-        return;
-      }
-      if (Math.abs(progress - this.nightProgress) < .0004) return;
+      progress = clamp(progress, 0, 1);
+      if (progress === this.nightProgress || (progress > 0 && progress < 1 && Math.abs(progress - this.nightProgress) < .0001)) return;
       this.nightProgress = progress;
+      const meta = this.moonlightData;
+      if (!this.originalMoonlight) {
+        this.originalMoonlight = this.fullCanvas(this.images[meta.source]);
+        const ox = this.originalMoonlight.getContext('2d');
+        const pixels = ox.getImageData(0, 0, W, H);
+        for (let i = 3; i < pixels.data.length; i += 4) pixels.data[i] = 255 - pixels.data[i];
+        ox.putImageData(pixels, 0, 0);
+      }
       const context = this.nightCanvas.getContext('2d');
-      context.clearRect(0, 0, W, H);
-      context.fillStyle = '#568ad4';
-      const paint = (image, dx, dy, opacity, mode) => {
-        dx = Math.round(dx);
-        dy = Math.round(dy);
-        context.globalAlpha = opacity;
-        context.globalCompositeOperation = mode;
-        context.drawImage(image, dx, dy, W, H);
-        const left = Math.max(0, dx);
-        const right = Math.min(W, W + dx);
-        const top = Math.max(0, dy);
-        const bottom = Math.min(H, H + dy);
-        if (left > 0) context.fillRect(0, 0, left, H);
-        if (right < W) context.fillRect(right, 0, W - right, H);
-        if (top > 0) context.fillRect(left, 0, right - left, top);
-        if (bottom < H) context.fillRect(left, bottom, right - left, H - bottom);
-      };
-      paint(this.images.nightStart, W * .47 * progress, H * .03 * progress, 1 - progress, 'source-over');
-      paint(this.images.nightEnd, -W * .47 * (1 - progress), -H * .03 * (1 - progress), progress, 'lighter');
       context.globalAlpha = 1;
+      context.globalCompositeOperation = 'source-over';
+      context.clearRect(0, 0, W, H);
+      context.fillStyle = 'rgb(' + meta.color.join(',') + ')';
+      context.fillRect(0, 0, W, H);
+      const dx = meta.startTranslation[0] * (1 - progress) + meta.endTranslation[0] * progress;
+      const dy = meta.startTranslation[1] * (1 - progress) + meta.endTranslation[1] * progress;
+      context.globalCompositeOperation = 'destination-out';
+      // One original painted footprint at native size, including its paper
+      // texture and gap. Only translate; never scale or blend two frames.
+      context.drawImage(this.originalMoonlight, dx, dy);
       context.globalCompositeOperation = 'source-over';
     }
 
