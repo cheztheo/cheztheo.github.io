@@ -7,12 +7,13 @@
   <meta name="description" content="Chez Theo — 一个可以慢慢探索的手绘房间。">
   <title>Chez Theo</title>
   <link rel="stylesheet" href="styles.css?v=20261103-10">
+  <link rel="stylesheet" href="startup-layout.css?v=20261109-1">
   <link rel="stylesheet" href="cursor-performance.css?v=20261109-1">
 </head>
 <body>
   <main class="site-shell" aria-label="Chez Theo 的手绘房间">
     <div class="room" id="room">
-      <div class="artboard" id="artboard">
+      <div class="artboard is-grouped" id="artboard">
         <canvas hidden data-scene="approvedNight" data-tiles="assets/approved-night.tiles.json" width="2048" height="1152" aria-hidden="true"></canvas>
         <img class="layer background" data-scene="background" src="assets/background-2002.png?v=20261103-8" alt="手绘房间背景">
         <img class="layer racket-layer" data-scene="racket" src="assets/racket.png" alt="" aria-hidden="true">
@@ -69,7 +70,7 @@
 
   <script src="room-state.js?v=20261102-7"></script>
   <script src="moonlight-data.js?v=20261103-7"></script>
-  <script src="object-interactions.js?v=20261102-7"></script>
+  <script src="object-interactions.js?v=20261109-1"></script>
   <script src="image-tiles.js?v=20261102-7"></script>
   <script src="shadow-morph.js?v=20261103-7"></script>
   <script src="scene-renderer.js?v=20261103-10"></script>

@@ -1,0 +1,6 @@
+/* The initial image layers use the same viewport clipping as the final canvas. */
+.room, .artboard { overflow: visible; }
+
+/* The renderer blends the daytime laptop at 75% opacity; do the same on load. */
+.computer-visual { filter: none; }
+.computer-day { opacity: calc(.75 * (1 - var(--night-strength))); }

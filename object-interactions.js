@@ -128,7 +128,7 @@
     if (renderer && renderer.leafAt(u, v)) return null;
     return objects.find((object) => {
       if(object.control.disabled)return false;
-      const nativeTennis=object.id==='tennis'&&renderer&&renderer.lightGroups;
+      const nativeTennis=object.id==='tennis'&&artboard.classList.contains('is-grouped');
       return containsPoint(object.mask,u-(nativeTennis?0:object.offsetU||0),v-(nativeTennis?0:object.offsetV||0));
     }) || null;
   }
