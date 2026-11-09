@@ -1,7 +1,6 @@
-/* Keep pointer movement independent of room layout and canvas painting. */
-.wind-cursor {
-  transform: translate3d(-100px, -100px, 0) translate(-50%, -50%);
-  will-change: transform, opacity;
-  contain: layout style;
+/* Use the platform's ordinary arrow: the native Mac pointer on macOS. */
+html, body, button, .artboard, .artboard.has-clickable-object, .hotspot, .dialog-close {
+  cursor: default !important;
 }
-.wind-cursor img { will-change: transform; }
+.wind-cursor { display: none !important; }
+.wind-cursor, .wind-cursor * { animation: none !important; }

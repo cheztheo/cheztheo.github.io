@@ -9,7 +9,6 @@ const hint = document.querySelector('#hint');
 const dialog = document.querySelector('#projectDialog');
 const dialogTitle = document.querySelector('#dialogTitle');
 const dialogClose = document.querySelector('#dialogClose');
-const cursor = document.querySelector('#windCursor');
 const scene = window.ChezTheoScene;
 const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
 const previewOffset = document.body.hasAttribute('data-night-preview')
@@ -47,9 +46,6 @@ function updateCycle(now) {
     renderer.reducedMotion = motionPreference.matches;
     renderer.render(now, state);
     if (renderer.hasFrame !== false) renderer.canvas.classList.add('is-ready');
-    const near = state.candle > 0 && pointer && renderer.flamePivots.some((pivot) =>
-      Math.hypot(pointer.x - pivot.x, pointer.y - (pivot.y - 22)) < pointer.radius);
-    cursor.classList.toggle('near-flame', Boolean(near));
   }
   requestAnimationFrame(updateCycle);
 }
@@ -94,8 +90,6 @@ function roomPoint(event) {
 }
 
 document.addEventListener('pointermove', (event) => {
-  cursor.style.transform = `translate3d(${event.clientX}px, ${event.clientY}px, 0) translate(-50%, -50%)`;
-  cursor.classList.toggle('visible', event.pointerType !== 'touch');
   const point = roomPoint(event);
   if (point.u < 0 || point.u > 1 || point.v < 0 || point.v > 1 || dialog.open) {
     pointer = null;
@@ -107,7 +101,6 @@ document.addEventListener('pointermove', (event) => {
 }, { passive: true });
 document.documentElement.addEventListener('pointerleave', () => {
   pointer = null;
-  cursor.classList.remove('visible', 'near-flame');
   if (renderer) renderer.setPointer(null);
 });
 
