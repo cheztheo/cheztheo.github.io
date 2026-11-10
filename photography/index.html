@@ -17,7 +17,7 @@ function showAlbum(index){
  track.replaceChildren();
  album.images.forEach((src,n)=>{
   const figure=document.createElement("figure");figure.className="card";
-  const img=document.createElement("img");img.src=src;img.alt=album.name+" "+(n+1);img.loading=n<2?"eager":"lazy";
+  const img=document.createElement("img");img.src=src;img.alt=album.name+" "+(n+1);img.loading="eager";img.addEventListener("load",updatePosition);
   const caption=document.createElement("figcaption");caption.className="caption";caption.textContent=(english?album.en:album.name)+" · "+album.year+" · "+String(n+1).padStart(2,"0");
   figure.append(img,caption);track.append(figure);
  });
