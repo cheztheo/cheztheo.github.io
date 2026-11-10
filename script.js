@@ -74,6 +74,7 @@ tennisButton.addEventListener('click', () => {
 
 document.querySelectorAll('.project').forEach((button) => {
   button.addEventListener('click', () => {
+    if (button.id === 'computerButton') { window.location.href = 'photography/'; return; }
     dialogTitle.textContent = button.dataset.project;
     dialog.showModal();
   });
