@@ -271,24 +271,30 @@ button { font: inherit; }
 /* Immediate fallback motion while the scene canvas finishes loading. */
 .tennis-layer.launching {
   z-index: 50;
-  animation: tennis-launch-fallback 2.4s cubic-bezier(.2,.7,.25,1) both;
+  animation: tennis-launch-fallback 2.4s linear both;
 }
 @keyframes tennis-launch-fallback {
   0% { transform: translate(-6.5%, -5.8%) translate(0, 0) rotate(0deg); }
-  18% { transform: translate(-6.5%, -5.8%) translate(3vw, -34vh) rotate(150deg); }
-  36% { transform: translate(-6.5%, -5.8%) translate(13vw, 0) rotate(360deg); }
-  52% { transform: translate(-6.5%, -5.8%) translate(21vw, -14vh) rotate(520deg); }
-  66% { transform: translate(-6.5%, -5.8%) translate(28vw, 0) rotate(680deg); }
-  76% { transform: translate(-6.5%, -5.8%) translate(34vw, -9vh) rotate(800deg); }
-  84% { transform: translate(-6.5%, -5.8%) translate(40vw, 0) rotate(900deg); }
-  100% { transform: translate(-6.5%, -5.8%) translate(78vw, 2vh) rotate(1180deg); }
-}
-.artboard.is-grouped .tennis-layer.launching {
+  15% { transform: translate(-6.5%, -5.8%) translate(4vw, -34vh) rotate(160deg); }
+  32% { transform: translate(-6.5%, -5.8%) translate(14vw, 1vh) rotate(360deg); }
+  39% { transform: translate(-6.5%, -5.8%) translate(17vw, -14vh) rotate(440deg); }
+  50% { transform: translate(-6.5%, -5.8%) translate(24vw, 1vh) rotate(580deg); }
+  57% { transform: translate(-6.5%, -5.8%) translate(27vw, -9vh) rotate(660deg); }
+  67% { transform: translate(-6.5%, -5.8%) translate(34vw, 1vh) rotate(800deg); }
+  100% { transform: translate(-6.5%, -5.8%) translate(82vw, 2vh) rotate(1260deg); }
+}.artboard.is-grouped .tennis-layer.launching {
   animation-name: tennis-launch-fallback-grouped;
 }
 @keyframes tennis-launch-fallback-grouped {
   0% { transform: translate(0, 0) rotate(0deg); }
-  18% { transform: translate(3vw, -34vh) rotate(150deg); }
+  15% { transform: translate(4vw, -34vh) rotate(160deg); }
+  32% { transform: translate(14vw, 1vh) rotate(360deg); }
+  39% { transform: translate(17vw, -14vh) rotate(440deg); }
+  50% { transform: translate(24vw, 1vh) rotate(580deg); }
+  57% { transform: translate(27vw, -9vh) rotate(660deg); }
+  67% { transform: translate(34vw, 1vh) rotate(800deg); }
+  100% { transform: translate(82vw, 2vh) rotate(1260deg); }
+}  18% { transform: translate(3vw, -34vh) rotate(150deg); }
   36% { transform: translate(13vw, 0) rotate(360deg); }
   52% { transform: translate(21vw, -14vh) rotate(520deg); }
   66% { transform: translate(28vw, 0) rotate(680deg); }
