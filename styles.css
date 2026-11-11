@@ -270,6 +270,7 @@ button { font: inherit; }
 
 /* Immediate fallback motion while the scene canvas finishes loading. */
 .tennis-layer.launching {
+  z-index: 50;
   animation: tennis-launch-fallback 2.4s cubic-bezier(.2,.7,.25,1) both;
 }
 @keyframes tennis-launch-fallback {

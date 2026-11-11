@@ -53,7 +53,7 @@ requestAnimationFrame(updateCycle);
 
 scene.load().then((readyRenderer) => {
   renderer = readyRenderer;
-  tennisLayer.classList.remove('launching');
+  // Keep the immediate trajectory visible above the canvas during handoff.
   if (previewOffset) startedAt = performance.now() - previewOffset;
   if (ballLaunched) renderer.launchBall(performance.now());
 }).catch((error) => {
