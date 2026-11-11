@@ -537,21 +537,21 @@
       context.drawImage(this.images.glass, 0, 0, W, H);
       context.drawImage(this.images.candlestick, 0, 0, W, H);
       const ball = this.sprites.tennis;
-      if (ballTime < 0 || ballTime < 1.85) {
+      if (ballTime < 0 || ballTime < 2.4) {
         let dx = this.ballOffset.x;
         let dy = this.ballOffset.y;
         if (ballTime >= 0) {
           // Two clear bounces, both staying below the midpoint of the chair back.
-          if (ballTime < .78) {
-            const t = ballTime / .78;
+          if (ballTime < .95) {
+            const t = ballTime / .95;
             dx += W * .14 * t;
             dy -= H * .16 * 4 * t * (1 - t);
-          } else if (ballTime < 1.28) {
-            const t = (ballTime - .78) / .5;
+          } else if (ballTime < 1.7) {
+            const t = (ballTime - .95) / .75;
             dx += W * (.14 + .10 * t);
             dy -= H * .075 * 4 * t * (1 - t);
           } else {
-            dx += W * (.24 + (ballTime - 1.28) * .62);
+            dx += W * (.24 + (ballTime - 1.7) * .62);
             dy += H * .008 * Math.sin((ballTime - 1.28) * 16);
           }
         }

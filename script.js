@@ -53,6 +53,7 @@ requestAnimationFrame(updateCycle);
 
 scene.load().then((readyRenderer) => {
   renderer = readyRenderer;
+  tennisLayer.classList.remove('launching');
   if (previewOffset) startedAt = performance.now() - previewOffset;
   if (ballLaunched) renderer.launchBall(performance.now());
 }).catch((error) => {
@@ -66,6 +67,7 @@ tennisButton.addEventListener('click', () => {
   ballLaunched = true;
   // Give immediate visual feedback while the scene renderer is still loading.
   tennisButton.disabled = true;
+  tennisLayer.classList.add('launching');
   if (renderer) renderer.launchBall(performance.now());
   hint.textContent = '网球要刷新页面才会回来';
   hint.classList.remove('hidden');
