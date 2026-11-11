@@ -507,7 +507,7 @@
     }
 
     render(now, state, force = false) {
-      if (!force && now - this.lastFrame < 1000 / 24) return false;
+      // Render the short ball launch at display rate; 24fps causes visible jumps.\n      const ballActive = this.ballStartedAt !== null &&\n        (now - this.ballStartedAt) < 1550;\n      const frameInterval = ballActive ? 1000 / 60 : 1000 / 24;\n      if (!force && now - this.lastFrame < frameInterval) return false;
       const dt = this.lastFrame < 0 ? .1 : Math.min(.1, (now - this.lastFrame) / 1000);
       let moving = false;
       for (const id of Object.keys(this.scales)) {
