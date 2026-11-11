@@ -269,21 +269,21 @@ button { font: inherit; }
 }
 
 
-.tennis-layer.launching { z-index: 50; animation: tennis-immediate 2.4s linear both; }
+.tennis-layer.launching { z-index: 50; animation: tennis-immediate 3s linear both; }
 @keyframes tennis-immediate {
   0% { transform: translate(-6.5%, -5.8%) translate(0,0) rotate(0); }
   18% { transform: translate(-6.5%, -5.8%) translate(3vw,-28vh) rotate(150deg); }
-  38% { transform: translate(-6.5%, -5.8%) translate(14vw,0) rotate(360deg); }
-  49% { transform: translate(-6.5%, -5.8%) translate(18vw,-12vh) rotate(470deg); }
-  64% { transform: translate(-6.5%, -5.8%) translate(27vw,0) rotate(650deg); }
+  37% { transform: translate(-6.5%, -5.8%) translate(14vw,0) rotate(360deg); }
+  51% { transform: translate(-6.5%, -5.8%) translate(18vw,-12vh) rotate(470deg); }
+  68% { transform: translate(-6.5%, -5.8%) translate(27vw,0) rotate(650deg); }
   100% { transform: translate(-6.5%, -5.8%) translate(85vw,2vh) rotate(1200deg); }
 }
 .artboard.is-grouped .tennis-layer.launching { animation-name: tennis-immediate-grouped; }
 @keyframes tennis-immediate-grouped {
   0% { transform: translate(0,0) rotate(0); }
   18% { transform: translate(3vw,-28vh) rotate(150deg); }
-  38% { transform: translate(14vw,0) rotate(360deg); }
-  49% { transform: translate(18vw,-12vh) rotate(470deg); }
-  64% { transform: translate(27vw,0) rotate(650deg); }
+  37% { transform: translate(14vw,0) rotate(360deg); }
+  51% { transform: translate(18vw,-12vh) rotate(470deg); }
+  68% { transform: translate(27vw,0) rotate(650deg); }
   100% { transform: translate(85vw,2vh) rotate(1200deg); }
 }

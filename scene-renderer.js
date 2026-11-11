@@ -542,17 +542,17 @@
         let dy = this.ballOffset.y;
         if (ballTime >= 0) {
           // Two clear bounces, both staying below the midpoint of the chair back.
-          if (ballTime < .95) {
-            const t = ballTime / .95;
+          if (ballTime < 1.1) {
+            const t = ballTime / 1.1;
             dx += W * .14 * t;
             dy -= H * .16 * 4 * t * (1 - t);
-          } else if (ballTime < 1.7) {
-            const t = (ballTime - .95) / .75;
+          } else if (ballTime < 2.0) {
+            const t = (ballTime - 1.1) / .9;
             dx += W * (.14 + .10 * t);
             dy -= H * .075 * 4 * t * (1 - t);
           } else {
-            dx += W * (.24 + (ballTime - 1.7) * .62);
-            dy += H * .008 * Math.sin((ballTime - 1.28) * 16);
+            dx += W * (.24 + (ballTime - 2.0) * .62);
+            dy += H * .008 * Math.sin((ballTime - 2.0) * 16);
           }
         }
         this.draw(context, ball, { dx, dy, angle: Math.max(0, ballTime) * 6 });
