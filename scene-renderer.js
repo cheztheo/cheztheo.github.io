@@ -542,21 +542,21 @@
         let dy = this.ballOffset.y;
         if (ballTime >= 0) {
           // One high first leap, followed by two smaller bounces and a roll.
-          const firstHeight = H * .16;
+          const firstHeight = H * .27;
           if (ballTime < .82) {
             const t = ballTime / .82;
-            dx += W * .075 * t;
+            dx += W * .13 * t;
             dy -= Math.max(0, firstHeight) * 4 * t * (1 - t);
           } else if (ballTime < 1.28) {
             const t = (ballTime - .82) / .46;
-            dx += W * (.075 + .075 * t);
-            dy -= H * .11 * 4 * t * (1 - t);
+            dx += W * (.13 + .08 * t);
+            dy -= H * .105 * 4 * t * (1 - t);
           } else if (ballTime < 1.65) {
             const t = (ballTime - 1.28) / .37;
-            dx += W * (.15 + .07 * t);
+            dx += W * (.21 + .07 * t);
             dy -= H * .07 * 4 * t * (1 - t);
           } else {
-            dx += W * (.22 + (ballTime - 1.65) * .48);
+            dx += W * (.28 + (ballTime - 1.65) * .48);
             dy += H * .012 * Math.sin((ballTime - 1.65) * 18);
           }
         }

@@ -274,20 +274,24 @@ button { font: inherit; }
 }
 @keyframes tennis-launch-fallback {
   0% { transform: translate(-6.5%, -5.8%) translate(0, 0) rotate(0deg); }
-  34% { transform: translate(-6.5%, -5.8%) translate(7vw, -13vh) rotate(220deg); }
-  53% { transform: translate(-6.5%, -5.8%) translate(14vw, 0) rotate(420deg); }
-  68% { transform: translate(-6.5%, -5.8%) translate(21vw, -7vh) rotate(560deg); }
-  80% { transform: translate(-6.5%, -5.8%) translate(28vw, 0) rotate(700deg); }
-  100% { transform: translate(-6.5%, -5.8%) translate(70vw, 2vh) rotate(980deg); }
+  18% { transform: translate(-6.5%, -5.8%) translate(3vw, -34vh) rotate(150deg); }
+  36% { transform: translate(-6.5%, -5.8%) translate(13vw, 0) rotate(360deg); }
+  52% { transform: translate(-6.5%, -5.8%) translate(21vw, -14vh) rotate(520deg); }
+  66% { transform: translate(-6.5%, -5.8%) translate(28vw, 0) rotate(680deg); }
+  76% { transform: translate(-6.5%, -5.8%) translate(34vw, -9vh) rotate(800deg); }
+  84% { transform: translate(-6.5%, -5.8%) translate(40vw, 0) rotate(900deg); }
+  100% { transform: translate(-6.5%, -5.8%) translate(78vw, 2vh) rotate(1180deg); }
 }
 .artboard.is-grouped .tennis-layer.launching {
   animation-name: tennis-launch-fallback-grouped;
 }
 @keyframes tennis-launch-fallback-grouped {
   0% { transform: translate(0, 0) rotate(0deg); }
-  34% { transform: translate(7vw, -13vh) rotate(220deg); }
-  53% { transform: translate(14vw, 0) rotate(420deg); }
-  68% { transform: translate(21vw, -7vh) rotate(560deg); }
-  80% { transform: translate(28vw, 0) rotate(700deg); }
-  100% { transform: translate(70vw, 2vh) rotate(980deg); }
+  18% { transform: translate(3vw, -34vh) rotate(150deg); }
+  36% { transform: translate(13vw, 0) rotate(360deg); }
+  52% { transform: translate(21vw, -14vh) rotate(520deg); }
+  66% { transform: translate(28vw, 0) rotate(680deg); }
+  76% { transform: translate(34vw, -9vh) rotate(800deg); }
+  84% { transform: translate(40vw, 0) rotate(900deg); }
+  100% { transform: translate(78vw, 2vh) rotate(1180deg); }
 }
