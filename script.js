@@ -64,7 +64,8 @@ scene.load().then((readyRenderer) => {
 tennisButton.addEventListener('click', () => {
   if (ballLaunched) return;
   ballLaunched = true;
-  tennisLayer.classList.add('launched');
+  // The scene canvas takes over the ball immediately; keep the source layer
+  // visible underneath until the canvas is ready so there is no flash.
   tennisButton.disabled = true;
   if (renderer) renderer.launchBall(performance.now());
   hint.textContent = '网球要刷新页面才会回来';
