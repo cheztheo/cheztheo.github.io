@@ -518,7 +518,7 @@
       }
       const ballTime = this.ballStartedAt === null ? -1 : (now - this.ballStartedAt) / 1000;
       if (!force && !this.dirty && !moving && !state.strength &&
-          !(ballTime >= 0 && ballTime < 1.55)) return false;
+          !(ballTime >= 0 && ballTime < 2.4)) return false;
       this.lastFrame = now;
       this.dirty = false;
       this.updateViewport();
@@ -537,23 +537,30 @@
       context.drawImage(this.images.glass, 0, 0, W, H);
       context.drawImage(this.images.candlestick, 0, 0, W, H);
       const ball = this.sprites.tennis;
-      if (ballTime < 0 || ballTime < 1.55) {
+      if (ballTime < 0 || ballTime < 2.4) {
         let dx = this.ballOffset.x;
         let dy = this.ballOffset.y;
         if (ballTime >= 0) {
+          // One high first leap, followed by two smaller bounces and a roll.
           const firstHeight = Math.min(H * .18, ball.top + this.ballOffset.y - H * .615);
-          if (ballTime < .72) {
-            const t = ballTime / .72;
-            dx += W * .045 * t;
+          if (ballTime < .82) {
+            const t = ballTime / .82;
+            dx += W * .075 * t;
             dy -= Math.max(0, firstHeight) * 4 * t * (1 - t);
+          } else if (ballTime < 1.28) {
+            const t = (ballTime - .82) / .46;
+            dx += W * (.075 + .075 * t);
+            dy -= H * .095 * 4 * t * (1 - t);
+          } else if (ballTime < 1.65) {
+            const t = (ballTime - 1.28) / .37;
+            dx += W * (.15 + .07 * t);
+            dy -= H * .055 * 4 * t * (1 - t);
           } else {
-            const t = Math.min(1, (ballTime - .72) / .6);
-            dx += W * (.045 + .15 * t);
-            dy -= H * .065 * 4 * t * (1 - t);
-            if (ballTime > 1.32) dx += (ballTime - 1.32) * W;
+            dx += W * (.22 + (ballTime - 1.65) * .48);
+            dy += H * .012 * Math.sin((ballTime - 1.65) * 18);
           }
         }
-        this.draw(context, ball, { dx, dy, angle: Math.max(0, ballTime) * 1.5 });
+        this.draw(context, ball, { dx, dy, angle: Math.max(0, ballTime) * 5.5 });
       }
       const computerPivot = { x: this.sprites.computer.left + this.sprites.computer.width / 2, y: this.sprites.computer.top + this.sprites.computer.height / 2 };
       if (this.lightGroups) this.draw(context, this.sprites.computerDay, { opacity: .75, scale: this.scales.computer, pivot: computerPivot });
