@@ -267,3 +267,27 @@ button { font: inherit; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* Immediate fallback motion while the scene canvas finishes loading. */
+.tennis-layer.launching {
+  animation: tennis-launch-fallback 2.4s cubic-bezier(.2,.7,.25,1) both;
+}
+@keyframes tennis-launch-fallback {
+  0% { transform: translate(-6.5%, -5.8%) translate(0, 0) rotate(0deg); }
+  34% { transform: translate(-6.5%, -5.8%) translate(7vw, -13vh) rotate(220deg); }
+  53% { transform: translate(-6.5%, -5.8%) translate(14vw, 0) rotate(420deg); }
+  68% { transform: translate(-6.5%, -5.8%) translate(21vw, -7vh) rotate(560deg); }
+  80% { transform: translate(-6.5%, -5.8%) translate(28vw, 0) rotate(700deg); }
+  100% { transform: translate(-6.5%, -5.8%) translate(70vw, 2vh) rotate(980deg); }
+}
+.artboard.is-grouped .tennis-layer.launching {
+  animation-name: tennis-launch-fallback-grouped;
+}
+@keyframes tennis-launch-fallback-grouped {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  34% { transform: translate(7vw, -13vh) rotate(220deg); }
+  53% { transform: translate(14vw, 0) rotate(420deg); }
+  68% { transform: translate(21vw, -7vh) rotate(560deg); }
+  80% { transform: translate(28vw, 0) rotate(700deg); }
+  100% { transform: translate(70vw, 2vh) rotate(980deg); }
+}
