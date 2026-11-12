@@ -275,13 +275,18 @@ button { font: inherit; }
   object-fit: fill;
   pointer-events: none;
   transform-origin: 90.65% 88.1%;
-  animation: tennis-two-bounces 2.6s linear both;
+  animation: tennis-two-bounces 1.9s linear both;
 }
 @keyframes tennis-two-bounces {
+  /* Each arc returns to the same floor line before the next one starts. */
   0% { transform: translate(0, 0) rotate(0deg); }
-  24% { transform: translate(1%, -12%) rotate(95deg); }
-  48% { transform: translate(2%, 0) rotate(190deg); }
-  63% { transform: translate(3.5%, -7%) rotate(260deg); }
-  78% { transform: translate(5%, 0) rotate(340deg); }
+  10.8% { transform: translate(.5%, -13.5%) rotate(42deg); }
+  21.6% { transform: translate(1%, -18%) rotate(84deg); }
+  32.4% { transform: translate(1.5%, -13.5%) rotate(126deg); }
+  43.2% { transform: translate(2%, 0) rotate(168deg); }
+  50.5% { transform: translate(2.5%, -7.875%) rotate(208deg); }
+  57.9% { transform: translate(3%, -10.5%) rotate(248deg); }
+  65.3% { transform: translate(3.5%, -7.875%) rotate(288deg); }
+  72.6% { transform: translate(4%, 0) rotate(328deg); }
   100% { transform: translate(22%, 0) rotate(680deg); }
 }
