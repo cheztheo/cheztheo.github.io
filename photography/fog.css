@@ -12,14 +12,12 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background:
-    radial-gradient(circle at 40% 38%, rgba(255,255,255,.65), transparent 41%),
-    radial-gradient(circle at 77% 75%, rgba(38,64,96,.24), transparent 48%),
-    radial-gradient(rgba(255,255,255,.24) .65px, transparent 1px),
-    linear-gradient(145deg, rgba(84,132,176,.55), rgba(227,235,238,.7) 47%, rgba(99,123,153,.5));
-  background-size: auto, auto, 4px 4px, auto;
-  -webkit-backdrop-filter: blur(22px) saturate(.7);
-  backdrop-filter: blur(22px) saturate(.7);
+  background: linear-gradient(140deg,
+    rgba(181,187,190,.32),
+    rgba(220,222,222,.38) 48%,
+    rgba(166,174,178,.36));
+  -webkit-backdrop-filter: blur(10px) saturate(.82);
+  backdrop-filter: blur(10px) saturate(.82);
   -webkit-mask-size: 100% 100%;
   mask-size: 100% 100%;
   -webkit-mask-repeat: no-repeat;

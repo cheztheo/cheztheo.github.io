@@ -46,7 +46,8 @@
   function wipe(x, y, touch) {
     const sx = x * mask.width / innerWidth;
     const sy = y * mask.height / innerHeight;
-    const radius = (touch ? 72 : 82) * mask.width / innerWidth;
+    // The fully clear center is about a fingertip wide, with a soft edge.
+    const radius = (touch ? 15 : 13) * mask.width / innerWidth;
     const edge = ctx.createRadialGradient(sx, sy, radius * .18, sx, sy, radius);
     edge.addColorStop(0, 'rgba(0,0,0,1)');
     edge.addColorStop(.64, 'rgba(0,0,0,1)');
@@ -59,7 +60,7 @@
   }
 
   function wipeLine(from, to, touch) {
-    const step = touch ? 16 : 18;
+    const step = 5;
     const distance = Math.hypot(to.x - from.x, to.y - from.y);
     const count = Math.max(1, Math.ceil(distance / step));
     for (let j = 1; j <= count; j++) {
