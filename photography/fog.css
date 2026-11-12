@@ -1,0 +1,74 @@
+/* The photograph stays live beneath a glass layer; erased areas reveal it exactly. */
+.fog-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  overflow: hidden;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.fog-glass {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 40% 38%, rgba(255,255,255,.65), transparent 41%),
+    radial-gradient(circle at 77% 75%, rgba(38,64,96,.24), transparent 48%),
+    radial-gradient(rgba(255,255,255,.24) .65px, transparent 1px),
+    linear-gradient(145deg, rgba(84,132,176,.55), rgba(227,235,238,.7) 47%, rgba(99,123,153,.5));
+  background-size: auto, auto, 4px 4px, auto;
+  -webkit-backdrop-filter: blur(22px) saturate(.7);
+  backdrop-filter: blur(22px) saturate(.7);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  opacity: var(--fog-opacity, 1);
+  transition: opacity 1.1s ease;
+}
+
+.fog-instruction {
+  position: absolute;
+  left: 50%;
+  bottom: max(7vh, 36px);
+  transform: translateX(-50%);
+  min-width: min(88vw, 320px);
+  padding: 14px 23px;
+  border: 1px solid rgba(255,255,255,.55);
+  border-radius: 3px;
+  background: rgba(242,247,249,.68);
+  box-shadow: 0 8px 30px rgba(37,61,85,.08);
+  color: #526479;
+  text-align: center;
+  pointer-events: none;
+  transition: opacity .5s ease;
+}
+.fog-instruction span { display: block; font-size: 13px; letter-spacing: .18em; }
+.fog-instruction small { display: block; margin-top: 8px; font-size: 10px; letter-spacing: .06em; opacity: .8; }
+.fog-skip {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  border: 0;
+  padding: 8px 11px;
+  background: rgba(245,249,250,.45);
+  color: #49627b;
+  font: 11px/1.2 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  letter-spacing: .1em;
+  cursor: pointer;
+}
+.fog-skip:hover, .fog-skip:focus-visible { background: rgba(255,255,255,.8); }
+.fog-intro:focus-visible { outline: 2px solid #667e95; outline-offset: -4px; }
+.fog-intro.is-clearing { pointer-events: none; }
+.fog-intro.is-clearing .fog-glass { opacity: 0; }
+.fog-intro.is-clearing .fog-instruction, .fog-intro.is-clearing .fog-skip { opacity: 0; }
+.back { z-index: 12; }
+
+@media (max-width: 700px) {
+  .fog-skip { top: 18px; right: 14px; }
+  .fog-instruction { bottom: max(8vh, 28px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fog-glass, .fog-instruction { transition-duration: .01ms; }
+}

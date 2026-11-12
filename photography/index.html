@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Chez Theo · Photography</title>
+<link rel="stylesheet" href="fog.css?v=20261112-1">
 <style>
 *{box-sizing:border-box}body{margin:0;background:#fff;color:#5c5c5c;font-family:Georgia,"Times New Roman",serif}.page{min-height:100vh;display:grid;grid-template-columns:16.6667% 83.3333%;position:relative}.side{padding:26px 34px;border-right:1px solid #f0f0f0;min-height:100vh;position:relative}.back{position:absolute;top:26px;left:34px;display:inline-flex;color:#777;text-decoration:none;font-family:Arial,sans-serif;font-size:25px;font-weight:300;line-height:1}.places{position:absolute;top:50%;left:0;right:0;transform:translateY(-50%);text-align:center;font-size:12px;letter-spacing:.06em;line-height:2.65;color:#b4b4b4}.places .active{color:#777}.gallery{padding:50px 5.2vw 40px 4.1vw;overflow:hidden;position:relative}.track{display:flex;gap:30px;align-items:flex-start;transition:transform .35s ease}.card{min-width:76%;margin:0}.card img{display:block;width:100%;height:64vh;object-fit:cover;cursor:zoom-in}.caption{font-size:11px;letter-spacing:.08em;color:#aaa;margin-top:18px}.nav{position:fixed;top:50%;z-index:2;width:20px;height:20px;border:0;border-top:1px solid #fff;border-left:1px solid #fff;background:transparent;cursor:pointer;padding:0;font-size:0;opacity:1}.nav[disabled]{display:none}.prev{left:22%;transform:translateY(-50%) rotate(-45deg)}.next{right:5%;transform:translateY(-50%) rotate(135deg)}.lightbox{display:none;position:fixed;inset:0;background:rgba(255,255,255,.97);z-index:5;align-items:center;justify-content:center}.lightbox.show{display:flex}.lightbox img{max-width:88vw;max-height:88vh;object-fit:contain}.close{position:absolute;top:25px;right:35px;border:0;background:none;font-family:Georgia,"Times New Roman",serif;font-size:30px;font-weight:300;color:#777;cursor:pointer}@media(max-width:700px){.page{grid-template-columns:26% 74%}.side{padding:22px 14px}.back{top:22px;left:14px}.gallery{padding:54px 14px}.card{min-width:100%}.card img{height:58vh}.prev{left:30%}.next{right:7%}}
 /* Keep the back arrow in the corner while the place names sit in the center. */
@@ -29,6 +30,13 @@ body,.back,.places,.caption,.language,.language button,.lightbox figcaption,.clo
 <body>
 <main class="page"><aside class="side"><a class="back" href="../" aria-label="返回"><svg viewBox="0 0 36 48" aria-hidden="true"><polyline points="30,4 8,24 30,44"/></svg></a><nav class="places" id="places" aria-label="影集"></nav></aside><section class="gallery" id="gallery" aria-label="照片浏览"><div class="language" aria-label="Language"><button type="button" id="zh" aria-pressed="true">中</button><span>/</span><button type="button" id="en" aria-pressed="false">EN</button></div><div class="track" id="track"></div></section><button class="nav prev" id="prev" aria-label="上一张">‹</button><button class="nav next" id="next" aria-label="下一张">›</button></main>
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="放大照片"><button class="close" id="close" aria-label="关闭">×</button><button class="zoom-nav zoom-prev" id="zoomPrev" aria-label="上一张">上一张</button><figure><img id="zoomImg" alt="放大照片"><figcaption id="zoomCaption"></figcaption></figure><button class="zoom-nav zoom-next" id="zoomNext" aria-label="下一张">下一张</button></div>
+<div class="fog-intro" id="fogIntro" role="region" aria-label="擦拭雾面以探索摄影集" tabindex="0">
+  <div class="fog-glass" id="fogGlass" aria-hidden="true"></div>
+  <div class="fog-instruction" aria-hidden="true"><span>擦一擦，看看照片</span><small>按住滑动或用手指擦拭 · 点击也能揭开</small></div>
+  <button class="fog-skip" id="fogSkip" type="button" aria-label="跳过雾面效果">跳过</button>
+</div>
+<noscript><style>.fog-intro{display:none}</style></noscript>
+<script src="fog.js?v=20261112-1"></script>
 <script>
 const albums={
   xinjiang:{name:{zh:'新疆',en:'XINJIANG'},photos:[
