@@ -1,0 +1,47 @@
+.track[hidden], .about-panel[hidden] { display: none; }
+
+.gallery.is-about {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(32px, 5vh, 60px) clamp(18px, 3vw, 56px);
+}
+.gallery.is-about .language { display: none; }
+.about-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(16px, 2vh, 24px);
+  width: 100%;
+  margin: 0 auto;
+}
+.about-photo {
+  width: min(100%, 90vh, 1100px);
+  margin: 0;
+}
+.about-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+}
+.about-copy {
+  width: 100%;
+  margin: 0;
+  color: #7a7a7a;
+  text-align: center;
+  font: clamp(11px, 1vw, 15px)/1.7 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,"PingFang SC",sans-serif;
+}
+.about-line { display: block; }
+
+@media (max-width: 700px) {
+  .gallery.is-about { padding: 50px 14px 18px; }
+  .about-copy { font-size: 11px; line-height: 1.6; }
+}
+@media (max-height: 600px) {
+  .gallery.is-about { padding-top: 42px; padding-bottom: 16px; }
+  .about-photo { width: min(100%, 72vh, 900px); }
+  .about-copy { font-size: 11px; line-height: 1.55; }
+}
