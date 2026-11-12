@@ -53,9 +53,8 @@ requestAnimationFrame(updateCycle);
 
 scene.load().then((readyRenderer) => {
   renderer = readyRenderer;
-  tennisLayer.classList.remove('launching');
   if (previewOffset) startedAt = performance.now() - previewOffset;
-  if (ballLaunched) renderer.launchBall(performance.now());
+  if (ballLaunched) renderer.launchBall(performance.now() - 3000);
 }).catch((error) => {
   console.error('The room artwork could not be loaded.', error);
   hint.textContent = '部分图片没有加载完成，请刷新后再试';
@@ -65,10 +64,20 @@ scene.load().then((readyRenderer) => {
 tennisButton.addEventListener('click', () => {
   if (ballLaunched) return;
   ballLaunched = true;
-  // Give immediate visual feedback while the scene renderer is still loading.
   tennisButton.disabled = true;
-  tennisLayer.classList.add('launching');
-  if (renderer) renderer.launchBall(performance.now());
+  // The animated copy lives outside the clipped room and stays above the canvas.
+  const bounds = artboard.getBoundingClientRect();
+  const flyingBall = tennisLayer.cloneNode(false);
+  flyingBall.removeAttribute('id');
+  flyingBall.removeAttribute('data-scene');
+  flyingBall.className = 'tennis-flight';
+  flyingBall.style.left = `${bounds.left}px`;
+  flyingBall.style.top = `${bounds.top}px`;
+  flyingBall.style.width = `${bounds.width}px`;
+  flyingBall.style.height = `${bounds.height}px`;
+  document.body.appendChild(flyingBall);
+  tennisLayer.style.visibility = 'hidden';
+  if (renderer) renderer.launchBall(performance.now() - 3000);
   hint.textContent = '网球要刷新页面才会回来';
   hint.classList.remove('hidden');
   setTimeout(() => hint.classList.add('hidden'), 4000);
