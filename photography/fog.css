@@ -32,10 +32,7 @@
   left: 50%;
   bottom: max(7vh, 36px);
   transform: translateX(-50%);
-  min-width: min(88vw, 240px);
-  padding: 9px 14px;
-  border-radius: 2px;
-  background: rgba(255,255,255,.5);
+  max-width: calc(100vw - 28px);
   color: #777;
   text-align: center;
   pointer-events: none;
